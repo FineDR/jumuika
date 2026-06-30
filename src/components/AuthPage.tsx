@@ -79,49 +79,49 @@ export const AuthPage: React.FC = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2rem',
+      padding: '1.5rem',
       fontFamily: 'Plus Jakarta Sans, sans-serif'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '450px',
+        maxWidth: '400px',
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
-        padding: '2.5rem',
+        padding: '1.75rem 2rem',
         boxShadow: 'var(--shadow-lg)',
         backdropFilter: 'blur(16px)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
+        gap: '1.25rem',
         animation: 'fadeIn 0.4s ease-out'
       }}>
         {/* Brand / Title */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', textAlign: 'center' }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '50px',
-            height: '50px',
-            borderRadius: '16px',
-            background: 'rgba(173, 239, 209, 0.08)',
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            background: 'rgba(173, 239, 209, 0.06)',
             border: '1px solid var(--border)'
           }}>
-            <Receipt size={26} style={{ color: 'var(--secondary)' }} />
+            <Receipt size={22} style={{ color: 'var(--secondary)' }} />
           </div>
           <h2 style={{
-            fontSize: '1.8rem',
+            fontSize: '1.5rem',
             fontFamily: 'Outfit',
             fontWeight: 800,
             color: 'var(--text-main)',
             letterSpacing: '-0.02em',
-            marginTop: '0.25rem'
+            marginTop: '0.15rem'
           }}>
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-            {isLogin ? 'Sign in to access your contribution engine' : 'Get started tracking your contributions'}
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            {isLogin ? 'Sign in to access your contribution engine' : 'Get started tracking contributions'}
           </p>
         </div>
 
@@ -130,37 +130,35 @@ export const AuthPage: React.FC = () => {
           <div style={{
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '0.75rem',
-            background: 'rgba(255, 94, 126, 0.1)',
-            border: '1px solid rgba(255, 94, 126, 0.25)',
+            gap: '0.5rem',
+            background: 'rgba(255, 94, 126, 0.08)',
+            border: '1px solid rgba(255, 94, 126, 0.2)',
             borderRadius: 'var(--radius-md)',
-            padding: '1rem',
+            padding: '0.75rem 1rem',
             color: 'var(--status-overdue)',
-            fontSize: '0.88rem'
+            fontSize: '0.85rem'
           }}>
-            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
             <span>{error}</span>
           </div>
         )}
 
         {/* Auth Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           {!isLogin && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <User size={14} style={{ color: 'var(--text-muted)' }} />
-                Full Name
-              </label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <User size={16} style={{ position: 'absolute', left: '0.85rem', color: 'var(--text-muted)' }} />
               <input
                 type="text"
-                placeholder="John Doe"
+                placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required={!isLogin}
                 style={{
-                  padding: '0.85rem 1rem',
+                  width: '100%',
+                  padding: '0.75rem 1rem 0.75rem 2.5rem',
                   borderRadius: 'var(--radius-md)',
-                  background: 'rgba(255, 255, 255, 0.03)',
+                  background: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid var(--border)',
                   color: 'var(--text-main)',
                   fontFamily: 'inherit',
@@ -174,21 +172,19 @@ export const AuthPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Mail size={14} style={{ color: 'var(--text-muted)' }} />
-              Email Address
-            </label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Mail size={16} style={{ position: 'absolute', left: '0.85rem', color: 'var(--text-muted)' }} />
             <input
               type="email"
-              placeholder="you@example.com"
+              placeholder="Email Address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               style={{
-                padding: '0.85rem 1rem',
+                width: '100%',
+                padding: '0.75rem 1rem 0.75rem 2.5rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'rgba(255, 255, 255, 0.02)',
                 border: '1px solid var(--border)',
                 color: 'var(--text-main)',
                 fontFamily: 'inherit',
@@ -201,21 +197,19 @@ export const AuthPage: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Lock size={14} style={{ color: 'var(--text-muted)' }} />
-              Password
-            </label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Lock size={16} style={{ position: 'absolute', left: '0.85rem', color: 'var(--text-muted)' }} />
             <input
               type="password"
-              placeholder="••••••••"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               style={{
-                padding: '0.85rem 1rem',
+                width: '100%',
+                padding: '0.75rem 1rem 0.75rem 2.5rem',
                 borderRadius: 'var(--radius-md)',
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'rgba(255, 255, 255, 0.02)',
                 border: '1px solid var(--border)',
                 color: 'var(--text-main)',
                 fontFamily: 'inherit',
@@ -233,25 +227,25 @@ export const AuthPage: React.FC = () => {
             disabled={loading}
             className="btn btn-primary"
             style={{
-              padding: '0.95rem',
-              fontSize: '1rem',
+              padding: '0.75rem',
+              fontSize: '0.95rem',
               borderRadius: 'var(--radius-md)',
-              marginTop: '0.5rem',
+              marginTop: '0.25rem',
               width: '100%',
               display: 'flex',
               justifyContent: 'center',
-              gap: '0.75rem'
+              gap: '0.5rem'
             }}
           >
             {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
-            {!loading && <ArrowRight size={18} />}
+            {!loading && <ArrowRight size={16} />}
           </button>
         </form>
 
         {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '0.25rem 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.1rem 0' }}>
           <div style={{ flexGrow: 1, height: '1px', background: 'var(--border)' }} />
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
           <div style={{ flexGrow: 1, height: '1px', background: 'var(--border)' }} />
         </div>
 
@@ -261,19 +255,19 @@ export const AuthPage: React.FC = () => {
           disabled={loading}
           style={{
             width: '100%',
-            padding: '0.85rem',
+            padding: '0.7rem',
             background: 'transparent',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--text-main)',
             fontFamily: 'inherit',
             fontWeight: 600,
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '0.75rem',
+            gap: '0.5rem',
             transition: 'var(--transition)'
           }}
           onMouseEnter={(e) => {
@@ -285,8 +279,7 @@ export const AuthPage: React.FC = () => {
             e.currentTarget.style.borderColor = 'var(--border)';
           }}
         >
-          {/* Flat Google Logo Icon */}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05"/>
@@ -296,7 +289,7 @@ export const AuthPage: React.FC = () => {
         </button>
 
         {/* Toggle Mode */}
-        <div style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+        <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => {
