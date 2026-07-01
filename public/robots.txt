@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jumuika.twendedigital.tech/sitemap.xml

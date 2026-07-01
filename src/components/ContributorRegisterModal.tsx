@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useJumuika } from '../context/JumuikaContext';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Button } from './ui/Button';
 
 interface ContributorRegisterModalProps {
   isOpen: boolean;
@@ -31,6 +33,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
       setFullName('');
       setPhone('');
       setNotes('');
+      toast.success('Contributor registered successfully!');
       onSuccess(newId);
       onClose();
     } catch (err: any) {
@@ -41,76 +44,85 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h3 className="modal-title">Register Contributor</h3>
-          <button className="modal-close-btn" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-[500px] bg-surface rounded-2xl shadow-lg border border-border animate-scale-in flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="font-heading text-xl font-bold text-foreground">Register Contributor</h3>
+          <button 
+            className="p-2 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.95]" 
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        {error && (
-          <div style={{
-            background: 'rgba(255, 94, 126, 0.15)',
-            border: '1px solid var(--status-overdue)',
-            color: 'var(--status-overdue)',
-            padding: '0.75rem 1rem',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1rem',
-            fontSize: '0.9rem'
-          }}>
-            {error}
-          </div>
-        )}
+        <div className="p-6 overflow-y-auto">
+          {error && (
+            <div className="p-3 mb-6 bg-danger/10 border border-danger/30 text-danger rounded-md text-sm font-semibold">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="fullName">Full Name *</label>
-            <input
-              id="fullName"
-              type="text"
-              className="form-control"
-              placeholder="e.g. John Doe"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="fullName">Full Name *</label>
+              <input
+                id="fullName"
+                type="text"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="e.g. John Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                disabled={saving}
+              />
+            </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="phone">Phone Number (Optional)</label>
-            <input
-              id="phone"
-              type="tel"
-              className="form-control"
-              placeholder="e.g. +254 712 345678"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="phone">Phone Number (Optional)</label>
+              <input
+                id="phone"
+                type="tel"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="e.g. +254 712 345678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={saving}
+              />
+            </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="notes">Notes (Optional)</label>
-            <textarea
-              id="notes"
-              className="form-control"
-              rows={3}
-              placeholder="e.g. Committee member, prefers M-Pesa payments"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="notes">Notes (Optional)</label>
+              <textarea
+                id="notes"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 disabled:opacity-50 disabled:cursor-not-allowed resize-y min-h-[100px]"
+                rows={3}
+                placeholder="e.g. Committee member, prefers M-Pesa payments"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                disabled={saving}
+              />
+            </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Registering...' : 'Register Contributor'}
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
+              <Button 
+                variant="ghost"
+                type="button" 
+                onClick={onClose}
+                disabled={saving}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="primary"
+                type="submit" 
+                isLoading={saving}
+              >
+                {saving ? 'Registering...' : 'Register Contributor'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

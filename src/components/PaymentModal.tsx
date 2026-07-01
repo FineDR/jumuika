@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useJumuika } from '../context/JumuikaContext';
 import { X, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Button } from './ui/Button';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -128,6 +130,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       setAmount('');
       setSelectedInstId(null);
       setNotes('');
+      toast.success('Payment recorded successfully!');
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to record payment');
@@ -137,151 +140,144 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 className="modal-title">Record Payment</h3>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Receiving payment from <strong>{contributor?.fullName}</strong>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-2xl bg-surface rounded-2xl shadow-lg border border-border animate-scale-in flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex flex-col">
+            <h3 className="font-heading text-xl font-bold text-foreground">Record Payment</h3>
+            <span className="text-sm text-muted">
+              Receiving payment from <strong className="text-foreground">{contributor?.fullName}</strong>
             </span>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>
+          <button 
+            className="p-2 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.95]" 
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        {error && (
-          <div style={{
-            background: 'rgba(255, 94, 126, 0.15)',
-            border: '1px solid var(--status-overdue)',
-            color: 'var(--status-overdue)',
-            padding: '0.75rem 1rem',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1rem',
-            fontSize: '0.9rem'
-          }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          {unpaidSchedules.length > 0 && (
-            <div className="form-group">
-              <label className="form-label">Tribute Installment to Pay (Optional / Cascade Select)</label>
-              <div className="quick-schedule-select">
-                {unpaidSchedules.map((s) => (
-                  <div 
-                    key={s.id}
-                    className={`quick-schedule-item ${selectedInstId === s.id ? 'selected' : ''}`}
-                    onClick={() => handleSelectSchedule(s.id, s.remainingAmount)}
-                  >
-                    <div className="quick-schedule-info">
-                      <span>
-                        {s.frequency === 'one-time' ? 'One-time' : `Installment #${s.installmentNumber}`}
-                      </span>
-                      <span className="quick-schedule-due">Due: {s.dueDate}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span className="quick-schedule-amount">{s.remainingAmount.toLocaleString()} KES</span>
-                      <span className={`badge badge-${
-                        s.status === 'Completed' ? 'completed' :
-                        s.status === 'Partially Paid' ? 'partial' :
-                        s.status === 'Due Today' ? 'due' :
-                        s.status === 'Overdue' ? 'overdue' : 'upcoming'
-                      }`} style={{ scale: '0.85' }}>
-                        {s.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div className="p-6 overflow-y-auto">
+          {error && (
+            <div className="p-3 mb-6 bg-danger/10 border border-danger/30 text-danger rounded-md text-sm font-semibold">
+              {error}
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="amount">Payment Amount *</label>
-            <input
-              id="amount"
-              type="number"
-              className="form-control"
-              placeholder="e.g. 30,000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {unpaidSchedules.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-muted">Tribute Installment to Pay (Optional / Cascade Select)</label>
+                <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto p-1">
+                  {unpaidSchedules.map((s) => (
+                    <div 
+                      key={s.id}
+                      className={`flex justify-between items-center p-3 rounded-lg border cursor-pointer transition-all duration-fast ${selectedInstId === s.id ? 'bg-secondary/10 border-secondary' : 'bg-foreground/5 border-border hover:bg-foreground/10 hover:border-muted'}`}
+                      onClick={() => handleSelectSchedule(s.id, s.remainingAmount)}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-foreground text-[0.95rem]">
+                          {s.frequency === 'one-time' ? 'One-time' : `Installment #${s.installmentNumber}`}
+                        </span>
+                        <span className="text-xs text-muted">Due: {s.dueDate}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-foreground">{s.remainingAmount.toLocaleString()} KES</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                          s.status === 'Completed' ? 'bg-success/15 text-success' :
+                          s.status === 'Partially Paid' ? 'bg-warning/15 text-warning' :
+                          s.status === 'Due Today' ? 'bg-danger/15 text-danger' :
+                          s.status === 'Overdue' ? 'bg-danger/15 text-danger' : 'bg-info/15 text-info'
+                        }`}>
+                          {s.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label" htmlFor="paymentMethod">Payment Method</label>
-              <select
-                id="paymentMethod"
-                className="form-control"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="M-Pesa">M-Pesa</option>
-                <option value="Cash">Cash</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Cheque">Cheque</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="recordedBy">Recorded By</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="amount">Payment Amount *</label>
               <input
-                id="recordedBy"
-                type="text"
-                className="form-control"
-                value={recordedBy}
-                onChange={(e) => setRecordedBy(e.target.value)}
+                id="amount"
+                type="number"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                placeholder="e.g. 30,000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
                 required
               />
             </div>
-          </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="notes">Payment Notes (Optional)</label>
-            <input
-              id="notes"
-              type="text"
-              className="form-control"
-              placeholder="e.g. Received via M-Pesa transaction ref QX45..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-col gap-2 flex-1">
+                <label className="text-sm font-semibold text-muted" htmlFor="paymentMethod">Payment Method</label>
+                <select
+                  id="paymentMethod"
+                  className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <option value="M-Pesa">M-Pesa</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
 
-          {appDetails && (
-            <div style={{
-              background: 'rgba(173, 239, 209, 0.08)',
-              border: '1px solid var(--secondary)',
-              borderRadius: 'var(--radius-md)',
-              padding: '0.85rem 1rem',
-              display: 'flex',
-              gap: '0.75rem',
-              fontSize: '0.85rem',
-              lineHeight: '1.4',
-              color: 'var(--text-main)',
-              marginTop: '1rem',
-              marginBottom: '1rem'
-            }}>
-              <Info size={16} className="text-secondary" style={{ flexShrink: 0, marginTop: '2px', color: 'var(--secondary)' }} />
-              <div>{appDetails}</div>
+              <div className="flex flex-col gap-2 flex-1">
+                <label className="text-sm font-semibold text-muted" htmlFor="recordedBy">Recorded By</label>
+                <input
+                  id="recordedBy"
+                  type="text"
+                  className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                  value={recordedBy}
+                  onChange={(e) => setRecordedBy(e.target.value)}
+                  required
+                />
+              </div>
             </div>
-          )}
 
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Processing Payment...' : 'Record Payment'}
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="notes">Payment Notes (Optional)</label>
+              <input
+                id="notes"
+                type="text"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                placeholder="e.g. Received via M-Pesa transaction ref QX45..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            {appDetails && (
+              <div className="flex gap-3 p-4 bg-secondary/10 border border-secondary/30 rounded-lg mt-2">
+                <Info size={18} className="text-secondary shrink-0 mt-0.5" />
+                <div className="text-sm text-foreground leading-relaxed">{appDetails}</div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
+              <Button 
+                variant="ghost"
+                type="button" 
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="primary"
+                type="submit" 
+                isLoading={saving}
+              >
+                {saving ? 'Processing Payment...' : 'Record Payment'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

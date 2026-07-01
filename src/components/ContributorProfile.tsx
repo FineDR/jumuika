@@ -4,6 +4,7 @@ import {
   ArrowLeft, Plus, DollarSign, Edit2, Trash2, 
   Clock, AlertCircle, X, Phone, FileText 
 } from 'lucide-react';
+import { Button } from './ui/Button';
 
 interface ContributorProfileProps {
   contributorId: string;
@@ -29,14 +30,18 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
   if (!contributor) {
     return (
-      <div className="section-card">
-        <button className="btn btn-secondary" onClick={onBack} style={{ marginBottom: '1rem' }}>
+      <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8">
+        <Button 
+          variant="ghost"
+          onClick={onBack}
+          className="mb-4 gap-2"
+        >
           <ArrowLeft size={16} /> Back to list
-        </button>
-        <div className="empty-state">
-          <AlertCircle size={48} className="text-danger" />
-          <h3>Contributor Not Found</h3>
-          <p>The contributor profile you are looking for does not exist.</p>
+        </Button>
+        <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-border rounded-xl">
+          <AlertCircle size={48} className="text-danger mb-4" />
+          <h3 className="font-heading text-xl font-bold text-foreground mb-2">Contributor Not Found</h3>
+          <p className="text-muted text-sm max-w-md">The contributor profile you are looking for does not exist or has been removed.</p>
         </div>
       </div>
     );
@@ -102,22 +107,28 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
   };
 
   return (
-    <div className="contributor-profile-view">
-      <button className="btn btn-secondary btn-sm" onClick={onBack} style={{ marginBottom: '1.5rem' }}>
-        <ArrowLeft size={16} /> Back to Contributors
-      </button>
+    <div className="flex flex-col gap-6">
+      <div>
+        <Button 
+          variant="outline"
+          onClick={onBack}
+          className="gap-2"
+        >
+          <ArrowLeft size={16} /> Back to Contributors
+        </Button>
+      </div>
 
-      <div className="profile-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 lg:gap-8 items-start">
         {/* Left Side: Summary Card */}
-        <div className="profile-card section-card">
-          <div className="profile-avatar-sec">
-            <div className="profile-avatar" style={{ width: '60px', height: '60px', fontSize: '1.5rem' }}>
+        <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm sticky top-24">
+          <div className="flex items-center gap-5 mb-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-secondary to-primary/80 text-white font-heading font-bold text-2xl shadow-inner">
               {contributor.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
             </div>
-            <div className="profile-name-sec">
-              <h3>{contributor.fullName}</h3>
+            <div className="flex flex-col">
+              <h3 className="font-heading text-xl font-bold text-foreground">{contributor.fullName}</h3>
               {contributor.phone && (
-                <p>
+                <p className="flex items-center gap-1.5 text-sm text-muted mt-1">
                   <Phone size={14} /> {contributor.phone}
                 </p>
               )}
@@ -125,165 +136,174 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
           </div>
 
           {contributor.notes && (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1rem',
-              fontSize: '0.9rem'
-            }}>
-              <div className="flex align-center gap-2" style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+            <div className="bg-foreground/5 border border-border rounded-xl p-4 text-sm mb-6">
+              <div className="flex items-center gap-2 text-muted font-semibold text-xs uppercase tracking-wider mb-1.5">
                 <FileText size={12} /> Notes
               </div>
-              <p style={{ fontStyle: 'italic', wordBreak: 'break-word' }}>{contributor.notes}</p>
+              <p className="italic text-foreground/80 break-words leading-relaxed">{contributor.notes}</p>
             </div>
           )}
 
-          <div className="profile-details-list">
-            <div className="profile-detail-item">
-              <span className="detail-label">Total Scheduled</span>
-              <span className="detail-val">{totalScheduled.toLocaleString()} KES</span>
+          <div className="flex flex-col gap-1 mb-6">
+            <div className="flex justify-between py-3 border-b border-border/50">
+              <span className="text-sm font-medium text-muted">Total Scheduled</span>
+              <span className="font-bold text-foreground">{totalScheduled.toLocaleString()} KES</span>
             </div>
-            <div className="profile-detail-item">
-              <span className="detail-label">Total Paid</span>
-              <span className="detail-val" style={{ color: 'var(--status-completed)' }}>
-                {totalPaid.toLocaleString()} KES
-              </span>
+            <div className="flex justify-between py-3 border-b border-border/50">
+              <span className="text-sm font-medium text-muted">Total Paid</span>
+              <span className="font-bold text-success">{totalPaid.toLocaleString()} KES</span>
             </div>
-            <div className="profile-detail-item">
-              <span className="detail-label">Remaining Balance</span>
-              <span className="detail-val" style={{ color: remainingBalance > 0 ? 'var(--status-overdue)' : 'var(--text-muted)' }}>
+            <div className="flex justify-between py-3 border-b border-border/50">
+              <span className="text-sm font-medium text-muted">Remaining Balance</span>
+              <span className={`font-bold ${remainingBalance > 0 ? 'text-warning' : 'text-muted'}`}>
                 {remainingBalance.toLocaleString()} KES
               </span>
             </div>
-            <div className="profile-detail-item" style={{ borderTop: '1px dashed var(--border)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-              <span className="detail-label">Overdue Balance</span>
-              <span className="detail-val" style={{ color: 'var(--status-overdue)' }}>
-                {overdueAmount.toLocaleString()} KES
-              </span>
+            <div className="flex justify-between py-3 border-b border-border/50 border-dashed mt-1">
+              <span className="text-sm font-medium text-muted">Overdue Balance</span>
+              <span className="font-bold text-danger">{overdueAmount.toLocaleString()} KES</span>
             </div>
             {nextDueSchedule && (
-              <div className="profile-detail-item" style={{ borderTop: '1px dashed var(--border)', paddingTop: '0.75rem' }}>
-                <span className="detail-label">Next Payment Due</span>
-                <span className="detail-val" style={{ color: 'var(--status-due)' }}>
-                  {nextDueSchedule.remainingAmount.toLocaleString()} KES ({nextDueSchedule.dueDate})
+              <div className="flex justify-between py-3 border-b border-border/50 border-dashed">
+                <span className="text-sm font-medium text-muted">Next Payment Due</span>
+                <span className="font-bold text-info text-right">
+                  {nextDueSchedule.remainingAmount.toLocaleString()} KES <br/>
+                  <span className="text-xs text-muted font-normal">({nextDueSchedule.dueDate})</span>
                 </span>
               </div>
             )}
           </div>
 
-          <div className="progress-container">
-            <div className="progress-bar-label">
+          <div className="mb-8">
+            <div className="flex justify-between text-sm font-bold text-foreground mb-2">
               <span>Payment Progress</span>
-              <span>{progressPercent}%</span>
+              <span className="text-secondary">{progressPercent}%</span>
             </div>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
+            <div className="h-2.5 w-full bg-foreground/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-secondary to-success transition-all duration-1000 ease-out" 
+                style={{ width: `${progressPercent}%` }}
+              ></div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
-            <button className="btn btn-primary" onClick={() => onOpenScheduleModal(contributorId)}>
-              <Plus size={16} /> Schedule Contribution
-            </button>
-            <button className="btn btn-secondary" onClick={() => onOpenPaymentModal(contributorId)}>
-              <DollarSign size={16} /> Record Payment
-            </button>
+          <div className="flex flex-col gap-3">
+            <Button 
+              variant="secondary"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() => onOpenScheduleModal(contributorId)}
+            >
+              <Plus size={18} /> Schedule Contribution
+            </Button>
+            <Button 
+              variant="primary"
+              size="lg"
+              className="w-full gap-2"
+              onClick={() => onOpenPaymentModal(contributorId)}
+            >
+              <DollarSign size={18} /> Record Payment
+            </Button>
           </div>
         </div>
 
         {/* Right Side: Schedule Timeline */}
-        <div className="section-card">
-          <h3 className="section-title" style={{ marginBottom: '1.5rem' }}>Payment Schedule</h3>
+        <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="font-heading text-2xl font-bold text-foreground mb-8">Payment Schedule</h3>
 
           {contributorSchedules.length === 0 ? (
-            <div className="empty-state">
-              <Clock size={40} className="empty-state-icon" />
-              <p>No contributions scheduled for this member yet.</p>
-              <button 
-                className="btn btn-secondary btn-sm"
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed border-border rounded-xl">
+              <Clock size={48} className="text-muted/50 mb-4" />
+              <p className="text-foreground font-medium mb-6">No contributions scheduled for this member yet.</p>
+              <Button 
+                variant="outline"
                 onClick={() => onOpenScheduleModal(contributorId)}
               >
                 Schedule First Contribution
-              </button>
+              </Button>
             </div>
           ) : (
-            <div className="timeline-list">
+            <div className="relative pl-6 sm:pl-8 border-l-2 border-border/50 ml-2 sm:ml-4 space-y-8">
               {contributorSchedules.map((schedule) => {
                 const isPaid = schedule.status === 'Completed';
                 const isPartiallyPaid = schedule.status === 'Partially Paid';
                 const canModify = schedule.amountPaid === 0;
 
+                const statusColors: Record<string, string> = {
+                  'Completed': 'bg-success border-success text-success text-success-foreground',
+                  'Partially Paid': 'bg-info border-info text-info text-info-foreground',
+                  'Due Today': 'bg-warning border-warning text-warning text-warning-foreground',
+                  'Overdue': 'bg-danger border-danger text-danger text-danger-foreground',
+                  'Upcoming': 'bg-foreground/20 border-foreground/30 text-muted'
+                };
+
+                const badgeBg = statusColors[schedule.status]?.split(' ')[0] || 'bg-foreground/20';
+                const nodeColorClass = statusColors[schedule.status]?.split(' ')[1] || 'border-border';
+                const nodeFillClass = statusColors[schedule.status]?.split(' ')[0] || 'bg-background';
+
                 return (
-                  <div key={schedule.id} className={`timeline-item ${
-                    isPaid ? 'completed' :
-                    isPartiallyPaid ? 'partial' :
-                    schedule.status === 'Due Today' ? 'due' :
-                    schedule.status === 'Overdue' ? 'overdue' : 'upcoming'
-                  }`}>
-                    <div className="timeline-node"></div>
-                    <div className="timeline-content">
-                      <div className="timeline-info">
-                        <div className="timeline-date-row">
-                          <span className="timeline-date">
-                            {new Date(schedule.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  <div key={schedule.id} className="relative group">
+                    {/* Node */}
+                    <div className={`absolute -left-[35px] sm:-left-[43px] top-1.5 w-4 h-4 rounded-full border-[3px] z-10 ${nodeColorClass} ${nodeFillClass} shadow-sm group-hover:scale-125 transition-transform`}></div>
+                    
+                    {/* Content */}
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-5 bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-border hover:border-foreground/20 rounded-xl transition-all shadow-sm group-hover:shadow-md">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="font-heading font-bold text-lg text-foreground">
+                            {new Date(schedule.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
-                          <span className="timeline-inst-num">
+                          <span className="text-xs font-semibold px-2 py-1 bg-foreground/5 text-muted rounded-md uppercase tracking-wider">
                             {schedule.frequency === 'one-time' ? 'One-time' : `Inst. ${schedule.installmentNumber}`}
                           </span>
-                          <span className={`badge badge-${
-                            schedule.status === 'Completed' ? 'completed' :
-                            schedule.status === 'Partially Paid' ? 'partial' :
-                            schedule.status === 'Due Today' ? 'due' :
-                            schedule.status === 'Overdue' ? 'overdue' : 'upcoming'
-                          }`}>
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${badgeBg.replace('/20', '')}`}>
                             {schedule.status}
                           </span>
                         </div>
-                        <div className="timeline-amounts">
-                          Amount: <strong>{schedule.amount.toLocaleString()} KES</strong>
+                        
+                        <div className="text-sm text-foreground mt-1">
+                          Amount: <strong className="font-bold">{schedule.amount.toLocaleString()} KES</strong>
                           {(schedule.amountPaid > 0) && (
-                            <span> | Paid: <span className="timeline-paid">{schedule.amountPaid.toLocaleString()} KES</span></span>
+                            <span className="text-muted ml-2">| Paid: <span className="text-success font-bold">{schedule.amountPaid.toLocaleString()} KES</span></span>
                           )}
                           {(!isPaid && schedule.amountPaid > 0) && (
-                            <span> | Due: <span style={{ color: 'var(--status-overdue)' }}>{schedule.remainingAmount.toLocaleString()} KES</span></span>
+                            <span className="text-muted ml-2">| Due: <span className="text-warning font-bold">{schedule.remainingAmount.toLocaleString()} KES</span></span>
                           )}
                         </div>
-                        {schedule.notes && <div className="timeline-notes">{schedule.notes}</div>}
+                        
+                        {schedule.notes && <div className="text-sm italic text-muted mt-1">{schedule.notes}</div>}
                       </div>
 
-                      <div className="timeline-actions">
+                      <div className="flex items-center gap-2">
                         {!isPaid && (
-                          <button
-                            className="btn btn-primary btn-sm"
+                          <Button
+                            variant="secondary"
+                            size="sm"
                             onClick={() => onOpenPaymentModal(contributorId, schedule.id)}
-                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                           >
                             Pay
-                          </button>
+                          </Button>
                         )}
                         {canModify ? (
-                          <>
+                          <div className="flex items-center gap-1">
                             <button
-                              className="btn btn-secondary btn-sm"
-                              style={{ padding: '0.4rem' }}
+                              className="p-2 text-muted hover:text-info hover:bg-info/10 rounded-lg transition-colors"
                               onClick={() => handleOpenEditModal(schedule)}
                               title="Edit installment details"
                             >
-                              <Edit2 size={14} />
+                              <Edit2 size={16} />
                             </button>
                             <button
-                              className="btn btn-secondary btn-sm"
-                              style={{ padding: '0.4rem', borderColor: 'rgba(255, 94, 126, 0.2)', color: 'var(--status-overdue)' }}
+                              className="p-2 text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
                               onClick={() => handleDeleteSchedule(schedule.id)}
                               title="Delete scheduled installment"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={16} />
                             </button>
-                          </>
+                          </div>
                         ) : (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', display: 'flex', alignItems: 'center' }}>
-                            {isPaid ? 'Locked' : 'Locked (Paid part)'}
+                          <span className="text-xs text-muted/70 italic px-2">
+                            {isPaid ? 'Locked' : 'Locked (Partial)'}
                           </span>
                         )}
                       </div>
@@ -298,47 +318,57 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
       {/* Edit schedule modal */}
       {editingSchedule && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3 className="modal-title">Edit Installment</h3>
-              <button className="modal-close-btn" onClick={() => setEditingSchedule(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm">
+          <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-xl flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-border/50">
+              <h3 className="font-heading text-xl font-bold text-foreground">Edit Installment</h3>
+              <button 
+                className="p-2 text-muted hover:text-foreground hover:bg-foreground/5 rounded-full transition-colors"
+                onClick={() => setEditingSchedule(null)}
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="editAmount">Installment Amount *</label>
+            <form onSubmit={handleSaveEdit} className="p-6 flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-muted" htmlFor="editAmount">Installment Amount *</label>
                 <input
                   id="editAmount"
                   type="number"
-                  className="form-control"
+                  className="w-full p-3 bg-background border border-border rounded-lg text-foreground font-sans focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all"
                   value={editAmount}
                   onChange={(e) => setEditAmount(Number(e.target.value))}
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="editDueDate">Due Date *</label>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-muted" htmlFor="editDueDate">Due Date *</label>
                 <input
                   id="editDueDate"
                   type="date"
-                  className="form-control"
+                  className="w-full p-3 bg-background border border-border rounded-lg text-foreground font-sans focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all"
                   value={editDueDate}
                   onChange={(e) => setEditDueDate(e.target.value)}
                   required
                 />
               </div>
 
-              <div className="form-actions">
-                <button type="button" className="btn btn-secondary" onClick={() => setEditingSchedule(null)}>
+              <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border/50">
+                <Button 
+                  variant="ghost"
+                  type="button" 
+                  onClick={() => setEditingSchedule(null)}
+                >
                   Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
+                </Button>
+                <Button 
+                  variant="primary"
+                  type="submit" 
+                >
                   Save Changes
-                </button>
+                </Button>
               </div>
             </form>
           </div>

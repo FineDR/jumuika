@@ -60,42 +60,51 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
   const selectedDateTotalDue = selectedDateSchedules.reduce((acc, curr) => acc + curr.remainingAmount, 0);
 
   return (
-    <div className="calendar-view-container">
-      <div className="page-header">
-        <div className="page-title-section">
-          <h2 className="page-title">Calendar View</h2>
-          <p className="page-subtitle">Visualize expected collections and payment distributions by date</p>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col">
+        <h2 className="font-heading text-3xl font-extrabold text-foreground mb-2">Calendar View</h2>
+        <p className="text-sm text-muted">Visualize expected collections and payment distributions by date</p>
       </div>
 
-      <div className="calendar-container">
-        <div className="calendar-nav">
-          <span className="calendar-month-year">
+      <div className="flex flex-col gap-6">
+        {/* Calendar Nav */}
+        <div className="flex justify-between items-center bg-surface p-4 sm:p-5 border border-border rounded-xl shadow-sm">
+          <span className="font-heading text-xl sm:text-2xl font-bold text-foreground">
             {monthNames[month]} {year}
           </span>
-          <div className="calendar-nav-buttons">
-            <button className="btn btn-secondary" onClick={handlePrevMonth} style={{ padding: '0.5rem' }}>
-              <ChevronLeft size={16} />
+          <div className="flex gap-2">
+            <button 
+              className="p-2 sm:p-2.5 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/50" 
+              onClick={handlePrevMonth}
+            >
+              <ChevronLeft size={18} />
             </button>
-            <button className="btn btn-secondary" onClick={() => setCurrentDate(new Date())} style={{ fontSize: '0.85rem' }}>
+            <button 
+              className="px-4 py-2 sm:py-2.5 bg-foreground/5 hover:bg-foreground/10 text-foreground font-semibold rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/50" 
+              onClick={() => setCurrentDate(new Date())}
+            >
               Today
             </button>
-            <button className="btn btn-secondary" onClick={handleNextMonth} style={{ padding: '0.5rem' }}>
-              <ChevronRight size={16} />
+            <button 
+              className="p-2 sm:p-2.5 bg-foreground/5 hover:bg-foreground/10 text-foreground rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/50" 
+              onClick={handleNextMonth}
+            >
+              <ChevronRight size={18} />
             </button>
           </div>
         </div>
 
-        <div className="calendar-grid">
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-2 sm:gap-3">
           {weekdayNames.map((day) => (
-            <div key={day} className="calendar-weekday">
+            <div key={day} className="text-center py-2 sm:py-3 text-xs sm:text-sm font-bold text-muted uppercase tracking-wider border-b border-border">
               {day}
             </div>
           ))}
 
           {calendarDays.map((dayNum, idx) => {
             if (dayNum === null) {
-              return <div key={`empty-${idx}`} className="calendar-day empty"></div>;
+              return <div key={`empty-${idx}`} className="min-h-[100px] bg-transparent rounded-xl"></div>;
             }
 
             const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
@@ -103,24 +112,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
             const totalDue = dateSchedules.reduce((sum, curr) => sum + curr.remainingAmount, 0);
             
             const isToday = new Date().toLocaleDateString('en-CA') === dayStr;
+            const hasData = dateSchedules.length > 0;
 
             return (
               <div 
                 key={dayStr} 
-                className={`calendar-day ${isToday ? 'today' : ''}`}
-                onClick={() => dateSchedules.length > 0 && setSelectedDate(dayStr)}
-                style={{
-                  cursor: dateSchedules.length > 0 ? 'pointer' : 'default',
-                  border: isToday ? '1px solid var(--secondary)' : undefined
-                }}
+                className={`flex flex-col justify-between min-h-[90px] sm:min-h-[110px] p-2 sm:p-3 bg-surface border rounded-xl transition-all duration-fast ${hasData ? 'cursor-pointer hover:bg-foreground/5 hover:border-secondary hover:-translate-y-1 hover:shadow-md' : 'cursor-default border-border'} ${isToday ? 'border-secondary shadow-[0_0_15px_rgba(20,184,166,0.15)] ring-1 ring-secondary/50' : 'border-border'}`}
+                onClick={() => hasData && setSelectedDate(dayStr)}
               >
-                <span className="day-number">{dayNum}</span>
-                {dateSchedules.length > 0 && (
-                  <div className="day-data">
-                    <span className="day-stats-pill expected">
+                <span className={`font-bold text-sm sm:text-base ${isToday ? 'text-secondary' : 'text-foreground'}`}>{dayNum}</span>
+                {hasData && (
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    <span className="text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 bg-secondary/10 text-secondary border border-secondary/20 rounded text-center truncate">
                       {totalDue.toLocaleString()}
                     </span>
-                    <span className="day-stats-pill count">
+                    <span className="text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 bg-warning/10 text-warning border border-warning/20 rounded text-center truncate">
                       {dateSchedules.length} Due
                     </span>
                   </div>
@@ -131,70 +137,68 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
         </div>
       </div>
 
-      {/* Date Detail Slider / Side Modal */}
+      {/* Date Detail Modal */}
       {selectedDate && (
-        <div className="modal-overlay" onClick={() => setSelectedDate(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <h3 className="modal-title">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm" onClick={() => setSelectedDate(null)}>
+          <div className="w-full max-w-lg bg-surface border border-border rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-start p-6 border-b border-border/50 bg-foreground/[0.02]">
+              <div className="flex flex-col gap-1">
+                <h3 className="font-heading text-xl font-bold text-foreground">
                   {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </h3>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Total expected collection: <strong>{selectedDateTotalDue.toLocaleString()} KES</strong>
+                <span className="text-sm text-muted">
+                  Total expected collection: <strong className="text-foreground">{selectedDateTotalDue.toLocaleString()} KES</strong>
                 </span>
               </div>
-              <button className="modal-close-btn" onClick={() => setSelectedDate(null)}>
+              <button 
+                className="p-2 -mr-2 -mt-2 text-muted hover:text-foreground hover:bg-foreground/5 rounded-full transition-colors" 
+                onClick={() => setSelectedDate(null)}
+              >
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
-              {selectedDateSchedules.map((schedule) => (
-                <div 
-                  key={schedule.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    transition: 'var(--transition)',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    onSelectContributorId(schedule.contributorId);
-                    setSelectedDate(null);
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--secondary)'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
-                >
-                  <div>
-                    <div className="flex align-center gap-2" style={{ fontWeight: 600 }}>
-                      <User size={14} className="text-secondary" style={{ color: 'var(--secondary)' }} />
-                      {getContributorName(schedule.contributorId)}
+            <div className="p-6 overflow-y-auto flex flex-col gap-4">
+              {selectedDateSchedules.map((schedule) => {
+                const statusColors: Record<string, string> = {
+                  'Completed': 'bg-success/10 text-success border-success/20',
+                  'Partially Paid': 'bg-info/10 text-info border-info/20',
+                  'Due Today': 'bg-warning/10 text-warning border-warning/20',
+                  'Overdue': 'bg-danger/10 text-danger border-danger/20',
+                  'Upcoming': 'bg-foreground/5 text-muted border-border'
+                };
+
+                const badgeStyle = statusColors[schedule.status] || statusColors['Upcoming'];
+
+                return (
+                  <div 
+                    key={schedule.id}
+                    className="flex flex-col sm:flex-row justify-between gap-3 p-4 bg-surface hover:bg-foreground/5 border border-border hover:border-secondary rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                    onClick={() => {
+                      onSelectContributorId(schedule.contributorId);
+                      setSelectedDate(null);
+                    }}
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 font-bold text-foreground">
+                        <User size={16} className="text-secondary" />
+                        {getContributorName(schedule.contributorId)}
+                      </div>
+                      <div className="text-xs text-muted font-medium bg-foreground/5 self-start px-2 py-0.5 rounded uppercase tracking-wide">
+                        {schedule.frequency === 'one-time' ? 'One-time' : `Installment #${schedule.installmentNumber}`}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                      {schedule.frequency === 'one-time' ? 'One-time' : `Installment #${schedule.installmentNumber}`}
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
+                      <div className="font-bold text-secondary text-lg">
+                        {schedule.remainingAmount.toLocaleString()} KES
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider shadow-sm ${badgeStyle}`}>
+                        {schedule.status}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--secondary)' }}>
-                      {schedule.remainingAmount.toLocaleString()} KES
-                    </div>
-                    <span className={`badge badge-${
-                      schedule.status === 'Completed' ? 'completed' :
-                      schedule.status === 'Partially Paid' ? 'partial' :
-                      schedule.status === 'Due Today' ? 'due' :
-                      schedule.status === 'Overdue' ? 'overdue' : 'upcoming'
-                    }`} style={{ scale: '0.8', marginRight: '-10px', marginTop: '0.25rem' }}>
-                      {schedule.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

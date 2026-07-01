@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useJumuika } from '../context/JumuikaContext';
-import { Receipt, UserPlus, Database, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Database, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { LogoIcon } from './ui/Logo';
 
 interface OnboardingWelcomeProps {
   onOpenRegisterModal: () => void;
@@ -40,142 +41,64 @@ export const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onOpenRegi
   ];
 
   return (
-    <div style={{
-      maxWidth: '800px',
-      margin: '2rem auto',
-      padding: '3rem 2rem',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '2.5rem',
-      textAlign: 'center',
-      animation: 'fadeIn 0.5s ease-out'
-    }}>
-      {/* Visual Header */}
-      <div style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '80px',
-        height: '80px',
-        borderRadius: '24px',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        boxShadow: '0 0 30px var(--mint-glow)',
-        marginBottom: '1rem'
-      }}>
-        <Receipt size={40} style={{ color: 'var(--secondary)' }} />
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <h1 style={{
-          fontSize: '3rem',
-          fontFamily: 'Outfit',
-          fontWeight: 800,
-          background: 'linear-gradient(135deg, #ffffff 0%, var(--secondary) 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          letterSpacing: '-0.02em'
-        }}>
-          Welcome to Jumuika
-        </h1>
-        <p style={{
-          fontSize: '1.15rem',
-          color: 'var(--text-muted)',
-          maxWidth: '600px',
-          lineHeight: '1.6',
-          margin: '0 auto'
-        }}>
-          The scheduled contribution engine. Track expected payments over time, cascade receipts, and monitor outstanding member ledgers automatically.
-        </p>
+    <div className="max-w-[800px] mx-auto py-12 px-8 flex flex-col items-center gap-10 text-center animate-in fade-in duration-[800ms] ease-out">
+      <div className="flex flex-col items-center text-center gap-6 mb-10 sm:mb-14">
+        <div className="relative">
+          <div className="absolute inset-0 bg-secondary/30 blur-2xl rounded-full scale-150"></div>
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border border-secondary/30 shadow-2xl flex items-center justify-center">
+            <LogoIcon className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-md" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl sm:text-5xl font-heading font-extrabold tracking-tight bg-gradient-to-br from-white to-secondary text-transparent bg-clip-text">
+            Welcome to Jumuika
+          </h1>
+          <p className="text-lg sm:text-xl text-muted max-w-[600px] leading-relaxed mx-auto mt-2">
+            The scheduled contribution engine. Track expected payments over time, cascade receipts, and monitor outstanding member ledgers automatically.
+          </p>
+        </div>
       </div>
 
       {/* Onboarding Steps */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1.5rem',
-        width: '100%',
-        margin: '1.5rem 0'
-      }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full my-6">
         {steps.map((step) => (
           <div 
             key={step.number}
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '1.5rem',
-              textAlign: 'left',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              backdropFilter: 'blur(12px)',
-              position: 'relative'
-            }}
+            className="bg-surface/80 border border-border rounded-2xl p-6 text-left flex flex-col gap-3 backdrop-blur-xl relative transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(20,184,166,0.15)] hover:border-secondary/30"
           >
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: 'var(--border-focus)',
-              color: 'var(--secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              fontFamily: 'Outfit'
-            }}>
+            <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary border border-secondary/20 flex items-center justify-center font-bold text-sm font-heading shadow-inner">
               {step.number}
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>{step.title}</h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>{step.desc}</p>
+            <h3 className="text-lg font-bold text-foreground">{step.title}</h3>
+            <p className="text-sm text-muted leading-relaxed">{step.desc}</p>
           </div>
         ))}
       </div>
 
       {/* CTA Buttons */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1.25rem',
-        justifyContent: 'center',
-        width: '100%'
-      }}>
+      <div className="flex flex-wrap gap-5 justify-center w-full">
         <button 
           onClick={onOpenRegisterModal} 
-          className="btn btn-primary"
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.05rem',
-            borderRadius: 'var(--radius-md)'
-          }}
+          className="flex items-center justify-center gap-2 px-8 py-4 bg-secondary text-slate-900 font-bold rounded-xl text-lg transition-all shadow-[0_8px_20px_rgba(20,184,166,0.3)] hover:shadow-[0_10px_25px_rgba(20,184,166,0.4)] hover:-translate-y-1 active:scale-[0.98]"
         >
-          <UserPlus size={20} />
+          <UserPlus size={22} />
           Register First Contributor
-          <ArrowRight size={18} />
+          <ArrowRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
         </button>
 
         <button 
           onClick={handleSeed} 
           disabled={seeding}
-          className="btn btn-secondary"
-          style={{
-            padding: '1rem 2rem',
-            fontSize: '1.05rem',
-            borderRadius: 'var(--radius-md)'
-          }}
+          className="flex items-center justify-center gap-2 px-8 py-4 bg-surface hover:bg-foreground/5 border border-border text-foreground font-bold rounded-xl text-lg transition-all hover:border-muted hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
         >
-          <Database size={20} />
+          <Database size={22} className="text-muted" />
           {seeding ? 'Seeding workspace...' : 'Seed Demo Workspace'}
         </button>
       </div>
 
       {/* Trust Signpost */}
-      <div className="flex align-center gap-2" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-        <CheckCircle2 size={14} style={{ color: 'var(--secondary)' }} />
+      <div className="flex items-center justify-center gap-2 text-xs font-medium text-muted mt-4 bg-foreground/5 px-4 py-2 rounded-full border border-border/50">
+        <CheckCircle2 size={14} className="text-secondary" />
         <span>Strictly adheres to AI-EOS project and database design standards.</span>
       </div>
     </div>

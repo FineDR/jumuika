@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useJumuika, generateInstallmentDates } from '../context/JumuikaContext';
 import { X } from 'lucide-react';
+import { Button } from './ui/Button';
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -102,180 +103,181 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 className="modal-title">Schedule Contribution</h3>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Creating schedule for <strong>{contributor?.fullName}</strong>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-2xl bg-surface rounded-2xl shadow-lg border border-border animate-scale-in flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <div className="flex flex-col">
+            <h3 className="font-heading text-xl font-bold text-foreground">Schedule Contribution</h3>
+            <span className="text-sm text-muted">
+              Creating schedule for <strong className="text-foreground">{contributor?.fullName}</strong>
             </span>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>
+          <button 
+            className="p-2 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.95]" 
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        {error && (
-          <div style={{
-            background: 'rgba(255, 94, 126, 0.15)',
-            border: '1px solid var(--status-overdue)',
-            color: 'var(--status-overdue)',
-            padding: '0.75rem 1rem',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1rem',
-            fontSize: '0.9rem'
-          }}>
-            {error}
+        <div className="p-6 overflow-y-auto">
+          {error && (
+            <div className="p-3 mb-6 bg-danger/10 border border-danger/30 text-danger rounded-md text-sm font-semibold">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-2 p-1.5 bg-foreground/5 border border-border rounded-lg mb-6">
+            <button 
+              type="button"
+              className={`flex-1 text-center py-2.5 rounded-md font-semibold text-sm transition-all duration-fast ${activeOption === 'one-time' ? 'bg-surface text-foreground shadow-sm' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
+              onClick={() => setActiveOption('one-time')}
+            >
+              Option A: One-Time
+            </button>
+            <button 
+              type="button"
+              className={`flex-1 text-center py-2.5 rounded-md font-semibold text-sm transition-all duration-fast ${activeOption === 'installment' ? 'bg-surface text-foreground shadow-sm' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
+              onClick={() => setActiveOption('installment')}
+            >
+              Option B: Installment Plan
+            </button>
           </div>
-        )}
 
-        <div className="tab-container" style={{ marginBottom: '1.25rem' }}>
-          <button 
-            type="button"
-            className={`tab-btn ${activeOption === 'one-time' ? 'active' : ''}`}
-            onClick={() => setActiveOption('one-time')}
-            style={{ flexGrow: 1, textAlign: 'center' }}
-          >
-            Option A: One-Time
-          </button>
-          <button 
-            type="button"
-            className={`tab-btn ${activeOption === 'installment' ? 'active' : ''}`}
-            onClick={() => setActiveOption('installment')}
-            style={{ flexGrow: 1, textAlign: 'center' }}
-          >
-            Option B: Installment Plan
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          {activeOption === 'one-time' ? (
-            <>
-              <div className="form-group">
-                <label className="form-label" htmlFor="amount">Amount *</label>
-                <div style={{ position: 'relative' }}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {activeOption === 'one-time' ? (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-muted" htmlFor="amount">Amount *</label>
                   <input
                     id="amount"
                     type="number"
-                    className="form-control"
+                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     placeholder="e.g. 100,000"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required={activeOption === 'one-time'}
                   />
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="dueDate">Due Date *</label>
-                <input
-                  id="dueDate"
-                  type="date"
-                  className="form-control"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  required={activeOption === 'one-time'}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="form-group">
-                <label className="form-label" htmlFor="totalTarget">Total Target Amount *</label>
-                <input
-                  id="totalTarget"
-                  type="number"
-                  className="form-control"
-                  placeholder="e.g. 120,000"
-                  value={totalTarget}
-                  onChange={(e) => setTotalTarget(e.target.value)}
-                  required={activeOption === 'installment'}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="installments">Number of Installments *</label>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-muted" htmlFor="dueDate">Due Date *</label>
                   <input
-                    id="installments"
+                    id="dueDate"
+                    type="date"
+                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    required={activeOption === 'one-time'}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-muted" htmlFor="totalTarget">Total Target Amount *</label>
+                  <input
+                    id="totalTarget"
                     type="number"
-                    min="2"
-                    max="60"
-                    className="form-control"
-                    placeholder="e.g. 4"
-                    value={installments}
-                    onChange={(e) => setInstallments(e.target.value)}
+                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    placeholder="e.g. 120,000"
+                    value={totalTarget}
+                    onChange={(e) => setTotalTarget(e.target.value)}
                     required={activeOption === 'installment'}
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label" htmlFor="frequency">Frequency *</label>
-                  <select
-                    id="frequency"
-                    className="form-control"
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                  >
-                    <option value="Daily">Daily</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Biweekly">Biweekly</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="Custom">Custom (Every 30 Days)</option>
-                  </select>
-                </div>
-              </div>
+                <div className="flex flex-col sm:flex-row gap-6">
+                  <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-sm font-semibold text-muted" htmlFor="installments">Number of Installments *</label>
+                    <input
+                      id="installments"
+                      type="number"
+                      min="2"
+                      max="60"
+                      className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                      placeholder="e.g. 4"
+                      value={installments}
+                      onChange={(e) => setInstallments(e.target.value)}
+                      required={activeOption === 'installment'}
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="startDate">Start Date / First Installment Due *</label>
-                <input
-                  id="startDate"
-                  type="date"
-                  className="form-control"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required={activeOption === 'installment'}
-                />
-              </div>
-
-              {previewInstallments.length > 0 && (
-                <div className="schedule-preview-box">
-                  <div className="preview-title">Generated Payment Plan Preview</div>
-                  <div className="preview-list">
-                    {previewInstallments.map((p) => (
-                      <div key={p.number} className="preview-item">
-                        <span>Installment #{p.number} — {new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                        <strong>{p.amount.toLocaleString()} KES</strong>
-                      </div>
-                    ))}
+                  <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-sm font-semibold text-muted" htmlFor="frequency">Frequency *</label>
+                    <select
+                      id="frequency"
+                      className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                      value={frequency}
+                      onChange={(e) => setFrequency(e.target.value)}
+                    >
+                      <option value="Daily">Daily</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Biweekly">Biweekly</option>
+                      <option value="Monthly">Monthly</option>
+                      <option value="Custom">Custom (Every 30 Days)</option>
+                    </select>
                   </div>
                 </div>
-              )}
-            </>
-          )}
 
-          <div className="form-group" style={{ marginTop: '1rem' }}>
-            <label className="form-label" htmlFor="notes">Notes / Labels (Optional)</label>
-            <input
-              id="notes"
-              type="text"
-              className="form-control"
-              placeholder="e.g. Development fund contribution"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-muted" htmlFor="startDate">Start Date / First Installment Due *</label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required={activeOption === 'installment'}
+                  />
+                </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Creating Schedule...' : 'Save Schedule'}
-            </button>
-          </div>
-        </form>
+                {previewInstallments.length > 0 && (
+                  <div className="mt-4 p-5 bg-foreground/5 border border-border rounded-lg">
+                    <div className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">Generated Payment Plan Preview</div>
+                    <div className="flex flex-col gap-1">
+                      {previewInstallments.map((p) => (
+                        <div key={p.number} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+                          <span className="text-sm text-foreground">Installment #{p.number} — {new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          <strong className="text-sm text-foreground font-bold">{p.amount.toLocaleString()} KES</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-muted" htmlFor="notes">Notes / Labels (Optional)</label>
+              <input
+                id="notes"
+                type="text"
+                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                placeholder="e.g. Development fund contribution"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
+              <Button 
+                variant="ghost"
+                type="button" 
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="primary"
+                type="submit" 
+                isLoading={saving}
+              >
+                {saving ? 'Creating Schedule...' : 'Save Schedule'}
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
