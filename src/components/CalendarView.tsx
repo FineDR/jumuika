@@ -147,7 +147,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
                   {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </h3>
                 <span className="text-sm text-muted">
-                  Total expected collection: <strong className="text-foreground">{selectedDateTotalDue.toLocaleString()} KES</strong>
+                  Total expected collection: <strong className="text-foreground">{selectedDateTotalDue.toLocaleString()} TZS</strong>
                 </span>
               </div>
               <button 
@@ -190,7 +190,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
                     </div>
                     <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
                       <div className="font-bold text-secondary text-lg">
-                        {schedule.remainingAmount.toLocaleString()} KES
+                        {schedule.remainingAmount.toLocaleString()} TZS
                       </div>
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider shadow-sm ${badgeStyle}`}>
                         {schedule.status}

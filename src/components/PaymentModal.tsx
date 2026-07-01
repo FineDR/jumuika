@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useJumuika } from '../context/JumuikaContext';
-import { X, Info } from 'lucide-react';
+import { X, Info, ChevronDown, User, Target, CreditCard, PenTool, AlignLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from './ui/Button';
+import { useTranslation } from 'react-i18next';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -18,9 +19,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onClose 
 }) => {
   const { contributors, schedules, recordPayment } = useJumuika();
+  const { t } = useTranslation();
   
   // Selection states
   const [selectedInstId, setSelectedInstId] = useState<string | null>(null);
+  const [selectedContributorId, setSelectedContributorId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [amount, setAmount] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('M-Pesa');
   const [recordedBy, setRecordedBy] = useState<string>('Treasurer');
@@ -29,10 +34,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const contributor = contributors.find(c => c.id === contributorId);
-
-  // Sync initial selection
   useEffect(() => {
+    setSelectedContributorId(contributorId);
+    setSearchQuery('');
+    setDropdownOpen(false);
     if (initialSelectedScheduleId) {
       setSelectedInstId(initialSelectedScheduleId);
       const s = schedules.find(sched => sched.id === initialSelectedScheduleId);
@@ -43,14 +48,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       setSelectedInstId(null);
       setAmount('');
     }
-  }, [initialSelectedScheduleId, isOpen]);
+  }, [contributorId, initialSelectedScheduleId, isOpen]);
 
-  if (!isOpen || !contributorId) return null;
+  if (!isOpen) return null;
 
-  // Filter unpaid schedules for this contributor
-  const unpaidSchedules = schedules
-    .filter(s => s.contributorId === contributorId && s.remainingAmount > 0)
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const activeContributorId = selectedContributorId || contributorId;
+  const contributor = contributors.find(c => c.id === activeContributorId);
+
+  const unpaidSchedules = activeContributorId
+    ? schedules
+        .filter(s => s.contributorId === activeContributorId && s.remainingAmount > 0)
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+    : [];
 
   const handleSelectSchedule = (scheduleId: string, remainingAmount: number) => {
     if (selectedInstId === scheduleId) {
@@ -71,15 +80,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     
     if (selectedSched) {
       if (paymentVal < selectedSched.remainingAmount) {
-        text = `This will record a partial payment of ${paymentVal.toLocaleString()} KES. The installment will have a remaining balance of ${(selectedSched.remainingAmount - paymentVal).toLocaleString()} KES.`;
+        text = `Records partial payment. Remaining balance: ${(selectedSched.remainingAmount - paymentVal).toLocaleString()} TZS.`;
       } else if (paymentVal === selectedSched.remainingAmount) {
-        text = `This will fully pay this installment (${paymentVal.toLocaleString()} KES).`;
+        text = `Fully pays this installment.`;
       } else {
         const excess = paymentVal - selectedSched.remainingAmount;
-        text = `This will fully pay this installment (${selectedSched.remainingAmount.toLocaleString()} KES) and automatically cascade the remaining ${excess.toLocaleString()} KES to reduce future due balances.`;
+        text = `Fully pays this installment and cascades remaining ${excess.toLocaleString()} TZS.`;
       }
     } else {
-      // General payment distribution
       let remaining = paymentVal;
       let paidCount = 0;
       let fullyPaid = 0;
@@ -93,12 +101,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       }
 
       if (paidCount > 0) {
-        text = `This general payment of ${paymentVal.toLocaleString()} KES will be distributed: it will affect ${paidCount} installment(s), fully paying off ${fullyPaid} of them.`;
-        if (remaining > 0) {
-          text += ` The excess credit of ${remaining.toLocaleString()} KES will remain on the account to offset future scheduled bills.`;
-        }
+        text = `Distributes to ${paidCount} installment(s), fully paying off ${fullyPaid}.`;
+        if (remaining > 0) text += ` Leaves ${remaining.toLocaleString()} TZS credit.`;
       } else {
-        text = `The member has no outstanding scheduled balances. This entire payment of ${paymentVal.toLocaleString()} KES will be logged as overpayment credit.`;
+        text = `Logs entire ${paymentVal.toLocaleString()} TZS as overpayment credit.`;
       }
     }
     return text;
@@ -110,6 +116,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     e.preventDefault();
     setError('');
 
+    if (!activeContributorId) {
+      setError('Please select a contributor first');
+      return;
+    }
+
     const paymentAmount = Number(amount);
     if (isNaN(paymentAmount) || paymentAmount <= 0) {
       setError('Please enter a valid payment amount greater than 0');
@@ -119,14 +130,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     setSaving(true);
     try {
       await recordPayment(
-        contributorId,
+        activeContributorId,
         selectedInstId,
         paymentAmount,
         paymentMethod,
         recordedBy,
         notes
       );
-      // Reset form
       setAmount('');
       setSelectedInstId(null);
       setNotes('');
@@ -139,58 +149,119 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
+  const filteredContributors = contributors.filter(c => 
+    c.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl bg-surface rounded-2xl shadow-lg border border-border animate-scale-in flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md animate-fade-in">
+      <div className="w-full max-w-[500px] bg-surface rounded-2xl shadow-2xl border border-border/50 animate-scale-in flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/50 backdrop-blur-sm">
           <div className="flex flex-col">
-            <h3 className="font-heading text-xl font-bold text-foreground">Record Payment</h3>
-            <span className="text-sm text-muted">
-              Receiving payment from <strong className="text-foreground">{contributor?.fullName}</strong>
+            <h3 className="font-heading text-lg font-bold text-foreground">{t('add_payment')}</h3>
+            <span className="text-xs text-muted">
+              {contributorId ? (
+                <>Receiving from <strong className="text-foreground">{contributor?.fullName}</strong></>
+              ) : (
+                'Select a member to record a payment'
+              )}
             </span>
           </div>
           <button 
-            className="p-2 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.95]" 
+            className="p-1.5 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all focus:outline-none" 
             onClick={onClose}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-5 overflow-y-auto">
           {error && (
-            <div className="p-3 mb-6 bg-danger/10 border border-danger/30 text-danger rounded-md text-sm font-semibold">
+            <div className="p-2.5 mb-4 bg-danger/10 border border-danger/20 text-danger rounded-lg text-xs font-semibold">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {unpaidSchedules.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-muted">Tribute Installment to Pay (Optional / Cascade Select)</label>
-                <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto p-1">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {!contributorId && (
+              <div className="flex flex-col gap-1.5 relative">
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider">{t('select_contributor')} <span className="text-danger">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <User size={16} />
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full pl-9 pr-10 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm text-left flex justify-between items-center transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    <span className="truncate">
+                      {contributor ? contributor.fullName : t('select_contributor')}
+                    </span>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted">
+                      <ChevronDown size={16} />
+                    </div>
+                  </button>
+                </div>
+                {dropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 bg-surface border border-border/50 rounded-xl mt-1 z-30 shadow-xl p-2 flex flex-col gap-2 max-h-60 overflow-y-auto backdrop-blur-xl">
+                    <input
+                      type="text"
+                      placeholder={t('search_contributor')}
+                      className="w-full p-2 bg-background border border-border/50 rounded-lg text-sm text-foreground focus:outline-none focus:border-secondary"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="flex flex-col mt-1 max-h-40 overflow-y-auto">
+                      {filteredContributors.length === 0 ? (
+                        <div className="text-xs text-muted p-2 text-center">No members found</div>
+                      ) : (
+                        filteredContributors.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="w-full p-2 text-left text-sm text-foreground hover:bg-foreground/5 rounded-lg transition-colors"
+                            onClick={() => {
+                              setSelectedContributorId(c.id);
+                              setDropdownOpen(false);
+                              setSearchQuery('');
+                            }}
+                          >
+                            {c.fullName}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeContributorId && unpaidSchedules.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider">Target Installment (Optional)</label>
+                <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
                   {unpaidSchedules.map((s) => (
                     <div 
                       key={s.id}
-                      className={`flex justify-between items-center p-3 rounded-lg border cursor-pointer transition-all duration-fast ${selectedInstId === s.id ? 'bg-secondary/10 border-secondary' : 'bg-foreground/5 border-border hover:bg-foreground/10 hover:border-muted'}`}
+                      className={`flex justify-between items-center p-2.5 rounded-xl border cursor-pointer transition-all ${selectedInstId === s.id ? 'bg-secondary/10 border-secondary/50 shadow-sm' : 'bg-foreground/5 border-transparent hover:bg-foreground/10'}`}
                       onClick={() => handleSelectSchedule(s.id, s.remainingAmount)}
                     >
                       <div className="flex flex-col">
-                        <span className="font-semibold text-foreground text-[0.95rem]">
-                          {s.frequency === 'one-time' ? 'One-time' : `Installment #${s.installmentNumber}`}
+                        <span className={`font-semibold text-[0.9rem] ${selectedInstId === s.id ? 'text-secondary' : 'text-foreground'}`}>
+                          {s.frequency === 'one-time' ? 'One-time' : `Inst #${s.installmentNumber}`}
                         </span>
-                        <span className="text-xs text-muted">Due: {s.dueDate}</span>
+                        <span className="text-[10px] text-muted font-medium">Due: {s.dueDate}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground">{s.remainingAmount.toLocaleString()} KES</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                          s.status === 'Completed' ? 'bg-success/15 text-success' :
-                          s.status === 'Partially Paid' ? 'bg-warning/15 text-warning' :
-                          s.status === 'Due Today' ? 'bg-danger/15 text-danger' :
-                          s.status === 'Overdue' ? 'bg-danger/15 text-danger' : 'bg-info/15 text-info'
-                        }`}>
-                          {s.status}
-                        </span>
+                        <span className={`font-bold text-sm ${selectedInstId === s.id ? 'text-secondary' : 'text-foreground'}`}>{s.remainingAmount.toLocaleString()} TZS</span>
+                        <div className={`w-2 h-2 rounded-full ${
+                          s.status === 'Completed' ? 'bg-success' :
+                          s.status === 'Partially Paid' ? 'bg-warning' :
+                          s.status === 'Due Today' ? 'bg-danger' :
+                          s.status === 'Overdue' ? 'bg-danger' : 'bg-info'
+                        }`} />
                       </div>
                     </div>
                   ))}
@@ -198,73 +269,94 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted" htmlFor="amount">Payment Amount *</label>
-              <input
-                id="amount"
-                type="number"
-                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                placeholder="e.g. 30,000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex flex-col gap-2 flex-1">
-                <label className="text-sm font-semibold text-muted" htmlFor="paymentMethod">Payment Method</label>
-                <select
-                  id="paymentMethod"
-                  className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                >
-                  <option value="M-Pesa">M-Pesa</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="Cheque">Cheque</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-2 flex-1">
-                <label className="text-sm font-semibold text-muted" htmlFor="recordedBy">Recorded By</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="amount">Payment Amount <span className="text-danger">*</span></label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                  <Target size={16} />
+                </div>
                 <input
-                  id="recordedBy"
-                  type="text"
-                  className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                  value={recordedBy}
-                  onChange={(e) => setRecordedBy(e.target.value)}
+                  id="amount"
+                  type="number"
+                  className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                  placeholder="e.g. 30,000"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted" htmlFor="notes">Payment Notes (Optional)</label>
-              <input
-                id="notes"
-                type="text"
-                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                placeholder="e.g. Received via M-Pesa transaction ref QX45..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="paymentMethod">Method</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <CreditCard size={16} />
+                  </div>
+                  <select
+                    id="paymentMethod"
+                    className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background appearance-none"
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  >
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 flex-1">
+                <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="recordedBy">Recorded By</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                    <PenTool size={16} />
+                  </div>
+                  <input
+                    id="recordedBy"
+                    type="text"
+                    className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                    value={recordedBy}
+                    onChange={(e) => setRecordedBy(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="notes">Notes</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                  <AlignLeft size={16} />
+                </div>
+                <input
+                  id="notes"
+                  type="text"
+                  className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                  placeholder="e.g. Ref QX45..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
             </div>
 
             {appDetails && (
-              <div className="flex gap-3 p-4 bg-secondary/10 border border-secondary/30 rounded-lg mt-2">
-                <Info size={18} className="text-secondary shrink-0 mt-0.5" />
-                <div className="text-sm text-foreground leading-relaxed">{appDetails}</div>
+              <div className="flex gap-2 p-3 bg-secondary/10 border border-secondary/20 rounded-xl mt-1 items-start">
+                <Info size={16} className="text-secondary shrink-0 mt-0.5" />
+                <div className="text-xs text-foreground/80 leading-relaxed font-medium">{appDetails}</div>
               </div>
             )}
 
-            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
+            <div className="flex justify-end gap-2 mt-2 pt-4 border-t border-border/50">
               <Button 
                 variant="ghost"
                 type="button" 
                 onClick={onClose}
+                className="px-4 py-2 text-sm"
               >
                 Cancel
               </Button>
@@ -272,8 +364,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 variant="primary"
                 type="submit" 
                 isLoading={saving}
+                className="px-5 py-2 text-sm"
               >
-                {saving ? 'Processing Payment...' : 'Record Payment'}
+                {saving ? 'Processing...' : 'Record Payment'}
               </Button>
             </div>
           </form>

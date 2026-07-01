@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useJumuika, type Schedule } from '../context/JumuikaContext';
 import { 
   ArrowLeft, Plus, DollarSign, Edit2, Trash2, 
-  Clock, AlertCircle, X, Phone, FileText 
+  Clock, AlertCircle, X, Phone, FileText, Wallet
 } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -11,15 +11,17 @@ interface ContributorProfileProps {
   onBack: () => void;
   onOpenScheduleModal: (contributorId: string) => void;
   onOpenPaymentModal: (contributorId: string, scheduleId?: string | null) => void;
+  onOpenPayoutModal: (contributorId: string) => void;
 }
 
 export const ContributorProfile: React.FC<ContributorProfileProps> = ({
   contributorId,
   onBack,
   onOpenScheduleModal,
-  onOpenPaymentModal
+  onOpenPaymentModal,
+  onOpenPayoutModal
 }) => {
-  const { contributors, schedules, deleteSchedule, editSchedule } = useJumuika();
+  const { contributors, schedules, payouts, deleteSchedule, editSchedule } = useJumuika();
   
   // Edit schedule inline modal state
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
@@ -52,10 +54,20 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
     .filter(s => s.contributorId === contributorId)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
+  // Filter contributor's payouts
+  const contributorPayouts = payouts
+    .filter(p => p.contributorId === contributorId)
+    .sort((a, b) => {
+      const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : Date.now();
+      const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : Date.now();
+      return timeB - timeA;
+    });
+
   // Calculations
   const totalScheduled = contributor.totalScheduled || 0;
   const totalPaid = contributor.totalPaid || 0;
   const remainingBalance = contributor.remainingBalance ?? (totalScheduled - totalPaid);
+  const totalReceived = contributorPayouts.reduce((sum, p) => sum + p.amount, 0);
 
   // Overdue payments sum
   const overdueSchedules = contributorSchedules.filter(s => s.status === 'Overdue');
@@ -147,27 +159,31 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
           <div className="flex flex-col gap-1 mb-6">
             <div className="flex justify-between py-3 border-b border-border/50">
               <span className="text-sm font-medium text-muted">Total Scheduled</span>
-              <span className="font-bold text-foreground">{totalScheduled.toLocaleString()} KES</span>
+              <span className="font-bold text-foreground">{totalScheduled.toLocaleString()} TZS</span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50">
               <span className="text-sm font-medium text-muted">Total Paid</span>
-              <span className="font-bold text-success">{totalPaid.toLocaleString()} KES</span>
+              <span className="font-bold text-success">{totalPaid.toLocaleString()} TZS</span>
+            </div>
+            <div className="flex justify-between py-3 border-b border-border/50 bg-primary/5 px-3 -mx-3 rounded-xl">
+              <span className="text-sm font-bold text-primary flex items-center gap-1.5"><Wallet size={14}/> Total Received</span>
+              <span className="font-bold text-primary">{totalReceived.toLocaleString()} TZS</span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50">
               <span className="text-sm font-medium text-muted">Remaining Balance</span>
               <span className={`font-bold ${remainingBalance > 0 ? 'text-warning' : 'text-muted'}`}>
-                {remainingBalance.toLocaleString()} KES
+                {remainingBalance.toLocaleString()} TZS
               </span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50 border-dashed mt-1">
               <span className="text-sm font-medium text-muted">Overdue Balance</span>
-              <span className="font-bold text-danger">{overdueAmount.toLocaleString()} KES</span>
+              <span className="font-bold text-danger">{overdueAmount.toLocaleString()} TZS</span>
             </div>
             {nextDueSchedule && (
               <div className="flex justify-between py-3 border-b border-border/50 border-dashed">
                 <span className="text-sm font-medium text-muted">Next Payment Due</span>
                 <span className="font-bold text-info text-right">
-                  {nextDueSchedule.remainingAmount.toLocaleString()} KES <br/>
+                  {nextDueSchedule.remainingAmount.toLocaleString()} TZS <br/>
                   <span className="text-xs text-muted font-normal">({nextDueSchedule.dueDate})</span>
                 </span>
               </div>
@@ -203,6 +219,14 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
               onClick={() => onOpenPaymentModal(contributorId)}
             >
               <DollarSign size={18} /> Record Payment
+            </Button>
+            <Button 
+              variant="outline"
+              size="lg"
+              className="w-full gap-2 border-border/50"
+              onClick={() => onOpenPayoutModal(contributorId)}
+            >
+              <Wallet size={18} /> Record Payout
             </Button>
           </div>
         </div>
@@ -262,12 +286,12 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                         </div>
                         
                         <div className="text-sm text-foreground mt-1">
-                          Amount: <strong className="font-bold">{schedule.amount.toLocaleString()} KES</strong>
+                          Amount: <strong className="font-bold">{schedule.amount.toLocaleString()} TZS</strong>
                           {(schedule.amountPaid > 0) && (
-                            <span className="text-muted ml-2">| Paid: <span className="text-success font-bold">{schedule.amountPaid.toLocaleString()} KES</span></span>
+                            <span className="text-muted ml-2">| Paid: <span className="text-success font-bold">{schedule.amountPaid.toLocaleString()} TZS</span></span>
                           )}
                           {(!isPaid && schedule.amountPaid > 0) && (
-                            <span className="text-muted ml-2">| Due: <span className="text-warning font-bold">{schedule.remainingAmount.toLocaleString()} KES</span></span>
+                            <span className="text-muted ml-2">| Due: <span className="text-warning font-bold">{schedule.remainingAmount.toLocaleString()} TZS</span></span>
                           )}
                         </div>
                         
@@ -311,6 +335,34 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
+        
+        {/* Payouts History */}
+        <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
+          <h3 className="font-heading text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+            <Wallet size={20} className="text-primary"/> Payouts History
+          </h3>
+
+          {contributorPayouts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 px-6 text-center border-2 border-dashed border-border rounded-xl">
+              <p className="text-muted text-sm font-medium">No payouts recorded for this member.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {contributorPayouts.map((payout) => (
+                <div 
+                  key={payout.id} 
+                  className="flex items-center justify-between p-4 rounded-xl bg-foreground/5 border border-border/50 hover:border-border transition-colors"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="font-bold text-sm text-foreground">{payout.payoutDate}</span>
+                    {payout.notes && <span className="text-xs text-muted italic">{payout.notes}</span>}
+                  </div>
+                  <span className="font-bold text-sm text-primary">+{payout.amount.toLocaleString()} TZS</span>
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -8,13 +8,15 @@ interface ContributorListProps {
   onOpenRegisterModal: () => void;
   onOpenScheduleModal: (contributorId: string) => void;
   onOpenPaymentModal: (contributorId: string) => void;
+  onOpenPayoutModal: (contributorId: string) => void;
 }
 
 export const ContributorList: React.FC<ContributorListProps> = ({
   onSelectContributor,
   onOpenRegisterModal,
   onOpenScheduleModal,
-  onOpenPaymentModal
+  onOpenPaymentModal,
+  onOpenPayoutModal
 }) => {
   const { contributors } = useJumuika();
   const [searchQuery, setSearchQuery] = useState('');
@@ -177,6 +179,14 @@ export const ContributorList: React.FC<ContributorListProps> = ({
                       >
                         Pay
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        className="flex-1 border border-border/50 text-foreground"
+                        onClick={() => onOpenPayoutModal(c.id)}
+                      >
+                        Payout
+                      </Button>
                     </div>
                   </div>
                 );
@@ -256,6 +266,15 @@ export const ContributorList: React.FC<ContributorListProps> = ({
                               title="Record Payment"
                             >
                               Pay
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="border border-border/50"
+                              onClick={() => onOpenPayoutModal(c.id)}
+                              title="Record Payout"
+                            >
+                              Payout
                             </Button>
                             <Button
                               variant="ghost"

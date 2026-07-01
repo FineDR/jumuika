@@ -3,13 +3,14 @@ import { useJumuika } from '../context/JumuikaContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon } from 'lucide-react';
 import { LogoIcon } from './ui/Logo';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onOpenEventModal: () => void;
+  onOpenPaymentModal: (contribId: string | null) => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 }
@@ -18,12 +19,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeTab, 
   setActiveTab, 
   onOpenEventModal,
+  onOpenPaymentModal,
   isMobileOpen = false,
   onCloseMobile
 }) => {
-  const { events, currentEventId, setCurrentEventId } = useJumuika();
+  const { events, currentEventId, setCurrentEventId, contributors } = useJumuika();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [eventSearch, setEventSearch] = useState('');
 
   const { theme, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
@@ -35,7 +38,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'contributors', label: t('contributors', 'Contributors'), icon: Users },
     { id: 'calendar', label: t('calendar', 'Calendar View'), icon: Calendar },
     { id: 'payments', label: t('payments', 'Payments Log'), icon: Receipt },
+    { id: 'settings', label: t('settings', 'Settings'), icon: SettingsIcon },
   ];
+
+  const filteredEvents = events.filter(e => 
+    e.name.toLowerCase().includes(eventSearch.toLowerCase())
+  );
 
   return (
     <>
@@ -70,32 +78,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
         
         {dropdownOpen && (
-          <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-md mt-1 z-30 shadow-lg max-h-48 overflow-y-auto overflow-x-hidden animate-drop-in">
-            {events.map((e) => (
-              <button
-                key={e.id}
-                onClick={() => {
-                  setCurrentEventId(e.id);
-                  setDropdownOpen(false);
-                }}
-                className={`w-full p-3 text-left text-sm cursor-pointer block transition-colors duration-fast ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
-              >
-                <span className="truncate block">{e.name}</span>
-              </button>
-            ))}
+          <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-md mt-1 z-30 shadow-lg p-2.5 flex flex-col gap-2 max-h-60 overflow-y-auto overflow-x-hidden animate-drop-in">
+            <input
+              type="text"
+              placeholder="Search event..."
+              className="w-full p-2 bg-background border border-border rounded text-xs text-foreground focus:outline-none focus:border-secondary"
+              value={eventSearch}
+              onChange={(e) => setEventSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="flex flex-col max-h-40 overflow-y-auto">
+              {filteredEvents.length === 0 ? (
+                <div className="text-xs text-muted p-2">No events found</div>
+              ) : (
+                filteredEvents.map((e) => (
+                  <button
+                    key={e.id}
+                    onClick={() => {
+                      setCurrentEventId(e.id);
+                      setDropdownOpen(false);
+                      setEventSearch('');
+                    }}
+                    className={`w-full p-2.5 text-left text-xs cursor-pointer block transition-colors duration-fast ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
+                  >
+                    <span className="truncate block flex items-center justify-between font-sans">
+                      {e.name}
+                      {e.id === currentEventId && <span className="text-[10px] font-bold text-secondary">✓</span>}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
             <button
               onClick={() => {
                 onOpenEventModal();
                 setDropdownOpen(false);
+                setEventSearch('');
               }}
-              className="w-full p-3 bg-secondary/5 hover:bg-secondary/10 border-t border-border text-left text-secondary text-sm font-semibold cursor-pointer flex items-center gap-2 transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              className="w-full p-2.5 bg-secondary/5 hover:bg-secondary/10 border-t border-border text-left text-secondary text-xs font-semibold cursor-pointer flex items-center gap-2 transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
-              <Plus size={16} />
+              <Plus size={14} />
               Create New Event
             </button>
           </div>
         )}
       </div>
+
+      <button
+        onClick={() => onOpenPaymentModal(null)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-surface hover:bg-secondary/95 hover:-translate-y-0.5 border border-transparent rounded-lg font-bold text-sm tracking-wide shadow-[0_4px_10px_rgba(20,184,166,0.2)] hover:shadow-[0_4px_15px_rgba(20,184,166,0.3)] transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary active:scale-[0.98]"
+      >
+        <Plus size={16} strokeWidth={2.5} />
+        <span>{t('quick_record')}</span>
+      </button>
 
       <nav className="flex-grow mt-4">
         <ul className="flex flex-col gap-2">
@@ -141,10 +176,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* User Session & Logout Panel */}
       <div className="flex flex-col gap-3">
         {user && (
-          <div className="px-4 py-3 bg-foreground/5 rounded-md border border-border text-muted flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-wider font-semibold">User</span>
+          <div className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-secondary/35 rounded-md border border-border text-muted flex flex-col gap-1 transition-all duration-fast group">
+            <span className="text-[10px] uppercase tracking-wider font-semibold group-hover:text-secondary transition-colors">Active Organizer</span>
             <span className="font-semibold text-foreground truncate text-sm">
               {user.displayName || user.email}
+            </span>
+            <span className="text-[9px] text-muted opacity-80 group-hover:opacity-100 transition-opacity">
+              {contributors.length} Members • {events.length} Events
             </span>
           </div>
         )}

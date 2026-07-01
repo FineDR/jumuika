@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useJumuika, generateInstallmentDates } from '../context/JumuikaContext';
-import { X } from 'lucide-react';
+import { X, Calendar, AlignLeft, Target, Hash, Repeat } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface ScheduleModalProps {
@@ -10,7 +10,7 @@ interface ScheduleModalProps {
 }
 
 export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributorId, onClose }) => {
-  const { contributors, addSchedule } = useJumuika();
+  const { currentEventId, events, contributors, addSchedule } = useJumuika();
   const [activeOption, setActiveOption] = useState<'one-time' | 'installment'>('one-time');
 
   // Form Fields
@@ -28,8 +28,23 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
   const [saving, setSaving] = useState(false);
 
   const contributor = contributors.find(c => c.id === contributorId);
+  const currentEvent = events.find(e => e.id === currentEventId);
 
-  // Generate live installment preview
+  useEffect(() => {
+    if (isOpen) {
+      if (currentEvent?.targetAmount) {
+        setAmount(currentEvent.targetAmount.toString());
+        setTotalTarget(currentEvent.targetAmount.toString());
+      } else {
+        setAmount('');
+        setTotalTarget('');
+      }
+      setDueDate(new Date().toLocaleDateString('en-CA'));
+      setStartDate(new Date().toLocaleDateString('en-CA'));
+      setNotes('');
+    }
+  }, [isOpen, currentEvent?.targetAmount]);
+
   useEffect(() => {
     if (activeOption === 'installment') {
       const targetVal = Number(totalTarget);
@@ -90,7 +105,6 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
         frequency,
         notes
       );
-      // Reset form
       setAmount('');
       setTotalTarget('');
       setNotes('');
@@ -103,143 +117,173 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl bg-surface rounded-2xl shadow-lg border border-border animate-scale-in flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md animate-fade-in">
+      <div className="w-full max-w-[480px] bg-surface rounded-2xl shadow-2xl border border-border/50 animate-scale-in flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/50 backdrop-blur-sm">
           <div className="flex flex-col">
-            <h3 className="font-heading text-xl font-bold text-foreground">Schedule Contribution</h3>
-            <span className="text-sm text-muted">
-              Creating schedule for <strong className="text-foreground">{contributor?.fullName}</strong>
+            <h3 className="font-heading text-lg font-bold text-foreground">Schedule Plan</h3>
+            <span className="text-xs text-muted">
+              For <strong className="text-foreground">{contributor?.fullName}</strong>
             </span>
           </div>
           <button 
-            className="p-2 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.95]" 
+            className="p-1.5 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all focus:outline-none" 
             onClick={onClose}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-5 overflow-y-auto">
           {error && (
-            <div className="p-3 mb-6 bg-danger/10 border border-danger/30 text-danger rounded-md text-sm font-semibold">
+            <div className="p-2.5 mb-4 bg-danger/10 border border-danger/20 text-danger rounded-lg text-xs font-semibold">
               {error}
             </div>
           )}
 
-          <div className="flex gap-2 p-1.5 bg-foreground/5 border border-border rounded-lg mb-6">
+          <div className="flex gap-1 p-1 bg-foreground/5 border border-border/50 rounded-lg mb-5 relative">
             <button 
               type="button"
-              className={`flex-1 text-center py-2.5 rounded-md font-semibold text-sm transition-all duration-fast ${activeOption === 'one-time' ? 'bg-surface text-foreground shadow-sm' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
+              className={`flex-1 text-center py-2 rounded-md font-semibold text-xs transition-all z-10 ${activeOption === 'one-time' ? 'text-foreground shadow-sm bg-surface' : 'text-muted hover:text-foreground'}`}
               onClick={() => setActiveOption('one-time')}
             >
-              Option A: One-Time
+              One-Time Payment
             </button>
             <button 
               type="button"
-              className={`flex-1 text-center py-2.5 rounded-md font-semibold text-sm transition-all duration-fast ${activeOption === 'installment' ? 'bg-surface text-foreground shadow-sm' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
+              className={`flex-1 text-center py-2 rounded-md font-semibold text-xs transition-all z-10 ${activeOption === 'installment' ? 'text-foreground shadow-sm bg-surface' : 'text-muted hover:text-foreground'}`}
               onClick={() => setActiveOption('installment')}
             >
-              Option B: Installment Plan
+              Installment Plan
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {activeOption === 'one-time' ? (
               <>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-muted" htmlFor="amount">Amount *</label>
-                  <input
-                    id="amount"
-                    type="number"
-                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    placeholder="e.g. 100,000"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required={activeOption === 'one-time'}
-                  />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="amount">Amount <span className="text-danger">*</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                      <Target size={16} />
+                    </div>
+                    <input
+                      id="amount"
+                      type="number"
+                      className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                      placeholder="e.g. 100,000"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      required={activeOption === 'one-time'}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-muted" htmlFor="dueDate">Due Date *</label>
-                  <input
-                    id="dueDate"
-                    type="date"
-                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    required={activeOption === 'one-time'}
-                  />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="dueDate">Due Date <span className="text-danger">*</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                      <Calendar size={16} />
+                    </div>
+                    <input
+                      id="dueDate"
+                      type="date"
+                      className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      required={activeOption === 'one-time'}
+                    />
+                  </div>
                 </div>
               </>
             ) : (
               <>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-muted" htmlFor="totalTarget">Total Target Amount *</label>
-                  <input
-                    id="totalTarget"
-                    type="number"
-                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    placeholder="e.g. 120,000"
-                    value={totalTarget}
-                    onChange={(e) => setTotalTarget(e.target.value)}
-                    required={activeOption === 'installment'}
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-6">
-                  <div className="flex flex-col gap-2 flex-1">
-                    <label className="text-sm font-semibold text-muted" htmlFor="installments">Number of Installments *</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="totalTarget">Total Target <span className="text-danger">*</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                      <Target size={16} />
+                    </div>
                     <input
-                      id="installments"
+                      id="totalTarget"
                       type="number"
-                      min="2"
-                      max="60"
-                      className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                      placeholder="e.g. 4"
-                      value={installments}
-                      onChange={(e) => setInstallments(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                      placeholder="e.g. 120,000"
+                      value={totalTarget}
+                      onChange={(e) => setTotalTarget(e.target.value)}
                       required={activeOption === 'installment'}
                     />
                   </div>
+                </div>
 
-                  <div className="flex flex-col gap-2 flex-1">
-                    <label className="text-sm font-semibold text-muted" htmlFor="frequency">Frequency *</label>
-                    <select
-                      id="frequency"
-                      className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                      value={frequency}
-                      onChange={(e) => setFrequency(e.target.value)}
-                    >
-                      <option value="Daily">Daily</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Biweekly">Biweekly</option>
-                      <option value="Monthly">Monthly</option>
-                      <option value="Custom">Custom (Every 30 Days)</option>
-                    </select>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="installments">Splits <span className="text-danger">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                        <Hash size={16} />
+                      </div>
+                      <input
+                        id="installments"
+                        type="number"
+                        min="2"
+                        max="60"
+                        className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                        placeholder="e.g. 4"
+                        value={installments}
+                        onChange={(e) => setInstallments(e.target.value)}
+                        required={activeOption === 'installment'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="frequency">Frequency <span className="text-danger">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                        <Repeat size={16} />
+                      </div>
+                      <select
+                        id="frequency"
+                        className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background appearance-none"
+                        value={frequency}
+                        onChange={(e) => setFrequency(e.target.value)}
+                      >
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Biweekly">Biweekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Custom">Custom</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-muted" htmlFor="startDate">Start Date / First Installment Due *</label>
-                  <input
-                    id="startDate"
-                    type="date"
-                    className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required={activeOption === 'installment'}
-                  />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="startDate">Start Date <span className="text-danger">*</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                      <Calendar size={16} />
+                    </div>
+                    <input
+                      id="startDate"
+                      type="date"
+                      className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      required={activeOption === 'installment'}
+                    />
+                  </div>
                 </div>
 
                 {previewInstallments.length > 0 && (
-                  <div className="mt-4 p-5 bg-foreground/5 border border-border rounded-lg">
-                    <div className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">Generated Payment Plan Preview</div>
+                  <div className="mt-2 p-3 bg-secondary/10 border border-secondary/20 rounded-lg max-h-[120px] overflow-y-auto">
+                    <div className="text-xs font-bold text-secondary mb-2 uppercase tracking-wider">Plan Preview</div>
                     <div className="flex flex-col gap-1">
                       {previewInstallments.map((p) => (
-                        <div key={p.number} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                          <span className="text-sm text-foreground">Installment #{p.number} — {new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                          <strong className="text-sm text-foreground font-bold">{p.amount.toLocaleString()} KES</strong>
+                        <div key={p.number} className="flex justify-between items-center py-1 border-b border-secondary/10 last:border-b-0">
+                          <span className="text-xs text-foreground/80">#{p.number} — {new Date(p.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                          <strong className="text-xs text-secondary font-bold">{p.amount.toLocaleString()}</strong>
                         </div>
                       ))}
                     </div>
@@ -248,23 +292,29 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
               </>
             )}
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-muted" htmlFor="notes">Notes / Labels (Optional)</label>
-              <input
-                id="notes"
-                type="text"
-                className="w-full p-3 bg-background border border-border rounded-md text-foreground font-sans text-[0.95rem] transition-all duration-fast focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                placeholder="e.g. Development fund contribution"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="notes">Notes</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
+                  <AlignLeft size={16} />
+                </div>
+                <input
+                  id="notes"
+                  type="text"
+                  className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
+                  placeholder="e.g. Setup for project X"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
+            <div className="flex justify-end gap-2 mt-2 pt-4 border-t border-border/50">
               <Button 
                 variant="ghost"
                 type="button" 
                 onClick={onClose}
+                className="px-4 py-2 text-sm"
               >
                 Cancel
               </Button>
@@ -272,8 +322,9 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
                 variant="primary"
                 type="submit" 
                 isLoading={saving}
+                className="px-5 py-2 text-sm"
               >
-                {saving ? 'Creating Schedule...' : 'Save Schedule'}
+                {saving ? 'Saving...' : 'Save Plan'}
               </Button>
             </div>
           </form>

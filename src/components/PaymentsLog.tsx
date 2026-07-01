@@ -80,7 +80,7 @@ export const PaymentsLog: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-5 font-bold text-success text-right whitespace-nowrap">
-                        +{p.amount.toLocaleString()} KES
+                        +{p.amount.toLocaleString()} TZS
                       </td>
                       <td className="p-5">
                         <span className="text-xs font-semibold px-2.5 py-1 bg-foreground/5 text-foreground rounded-md uppercase tracking-wider border border-border">

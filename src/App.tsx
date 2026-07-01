@@ -11,12 +11,14 @@ import { ContributorProfile } from './components/ContributorProfile';
 import { ContributorRegisterModal } from './components/ContributorRegisterModal';
 import { ScheduleModal } from './components/ScheduleModal';
 import { PaymentModal } from './components/PaymentModal';
+import { PayoutModal } from './components/PayoutModal';
 import { CalendarView } from './components/CalendarView';
 import { PaymentsLog } from './components/PaymentsLog';
 import { EventsModal } from './components/EventsModal';
 import { OnboardingWelcome } from './components/OnboardingWelcome';
 import { LandingPage } from './components/LandingPage';
 import { AuthPage } from './components/AuthPage';
+import { Settings } from './components/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -45,6 +47,7 @@ function AppContent() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
   
   // Mobile drawer state
@@ -52,16 +55,23 @@ function AppContent() {
 
   // Modal context states
   const [payTargetScheduleId, setPayTargetScheduleId] = useState<string | null>(null);
+  const [paymentModalContributorId, setPaymentModalContributorId] = useState<string | null>(null);
+  const [payoutModalContributorId, setPayoutModalContributorId] = useState<string | null>(null);
 
   const handleOpenScheduleModal = (contribId: string) => {
     setSelectedContributorId(contribId);
     setIsScheduleOpen(true);
   };
 
-  const handleOpenPaymentModal = (contribId: string, scheduleId: string | null = null) => {
-    setSelectedContributorId(contribId);
+  const handleOpenPaymentModal = (contribId: string | null, scheduleId: string | null = null) => {
+    setPaymentModalContributorId(contribId);
     setPayTargetScheduleId(scheduleId);
     setIsPaymentOpen(true);
+  };
+
+  const handleOpenPayoutModal = (contribId: string | null) => {
+    setPayoutModalContributorId(contribId);
+    setIsPayoutOpen(true);
   };
 
   const handleSelectContributor = (id: string) => {
@@ -87,6 +97,7 @@ function AppContent() {
           onBack={() => setSelectedContributorId(null)}
           onOpenScheduleModal={handleOpenScheduleModal}
           onOpenPaymentModal={handleOpenPaymentModal}
+          onOpenPayoutModal={handleOpenPayoutModal}
         />
       );
     }
@@ -99,6 +110,8 @@ function AppContent() {
               setSelectedContributorId(id);
               setActiveTab('contributors');
             }} 
+            onOpenPaymentModal={() => handleOpenPaymentModal(null, null)}
+            onOpenRegisterModal={() => setIsRegisterOpen(true)}
           />
         );
       case 'contributors':
@@ -108,6 +121,7 @@ function AppContent() {
             onOpenRegisterModal={() => setIsRegisterOpen(true)}
             onOpenScheduleModal={handleOpenScheduleModal}
             onOpenPaymentModal={(id) => handleOpenPaymentModal(id, null)}
+            onOpenPayoutModal={(id) => handleOpenPayoutModal(id)}
           />
         );
       case 'calendar':
@@ -121,6 +135,8 @@ function AppContent() {
         );
       case 'payments':
         return <PaymentsLog />;
+      case 'settings':
+        return <Settings />;
       default:
         return (
           <Dashboard 
@@ -128,6 +144,8 @@ function AppContent() {
               setSelectedContributorId(id);
               setActiveTab('contributors');
             }} 
+            onOpenPaymentModal={() => handleOpenPaymentModal(null, null)}
+            onOpenRegisterModal={() => setIsRegisterOpen(true)}
           />
         );
     }
@@ -139,6 +157,7 @@ function AppContent() {
         activeTab={selectedContributorId && activeTab === 'contributors' ? 'contributors' : activeTab} 
         setActiveTab={handleSidebarTabChange} 
         onOpenEventModal={() => setIsEventOpen(true)}
+        onOpenPaymentModal={(id) => handleOpenPaymentModal(id, null)}
         isMobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
@@ -266,9 +285,14 @@ function AppContent() {
       />
       <PaymentModal 
         isOpen={isPaymentOpen} 
-        contributorId={selectedContributorId} 
+        contributorId={paymentModalContributorId} 
         selectedScheduleId={payTargetScheduleId}
         onClose={() => setIsPaymentOpen(false)} 
+      />
+      <PayoutModal 
+        isOpen={isPayoutOpen}
+        contributorId={payoutModalContributorId}
+        onClose={() => setIsPayoutOpen(false)}
       />
       <EventsModal 
         isOpen={isEventOpen} 

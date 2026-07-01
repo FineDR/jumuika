@@ -9,7 +9,8 @@ import {
   orderBy, 
   writeBatch,
   serverTimestamp,
-  Timestamp 
+  Timestamp,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -55,7 +56,18 @@ export interface Payment {
 export interface Event {
   id: string;
   name: string;
+  targetAmount?: number;
   createdAt: any;
+}
+
+export interface Payout {
+  id: string;
+  eventId: string;
+  contributorId: string;
+  amount: number;
+  payoutDate: string;
+  notes?: string;
+  createdAt?: any;
 }
 
 interface JumuikaContextType {
@@ -65,11 +77,12 @@ interface JumuikaContextType {
   contributors: Contributor[];
   schedules: Schedule[];
   payments: Payment[];
+  payouts: Payout[];
   loading: boolean;
   
   // Actions
-  addEvent: (name: string) => Promise<string>;
-  addContributor: (fullName: string, phone?: string, notes?: string) => Promise<string>;
+  addEvent: (name: string, targetAmount?: number) => Promise<string>;
+  addContributor: (fullName: string, phone?: string, notes?: string, expectedAmount?: number) => Promise<string>;
   addSchedule: (
     contributorId: string, 
     type: 'one-time' | 'installment',
@@ -89,7 +102,9 @@ interface JumuikaContextType {
     recordedBy: string,
     notes?: string
   ) => Promise<void>;
-  seedDemoData: () => Promise<void>;
+  addPayout: (contributorId: string, amount: number, payoutDate: string, notes?: string) => Promise<string>;
+  deletePayout: (payoutId: string) => Promise<void>;
+  clearDemoData: () => Promise<void>;
 }
 
 const JumuikaContext = createContext<JumuikaContextType | undefined>(undefined);
@@ -140,6 +155,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // 1. Setup events listener
@@ -215,6 +231,19 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         list.push({ id: doc.id, ...doc.data() } as Payment);
       });
       setPayments(list);
+    });
+
+    const payoutsQuery = query(
+      collection(db, 'payouts'), 
+      where('eventId', '==', currentEventId),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubPayouts = onSnapshot(payoutsQuery, (snapshot) => {
+      const list: Payout[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() } as Payout);
+      });
+      setPayouts(list);
       setLoading(false);
     });
 
@@ -222,34 +251,61 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       unsubContributors();
       unsubSchedules();
       unsubPayments();
+      unsubPayouts();
     };
   }, [currentEventId]);
 
   // Actions
-  const addEvent = async (name: string): Promise<string> => {
+  const addEvent = async (name: string, targetAmount?: number): Promise<string> => {
     const docRef = doc(collection(db, 'events'));
-    await setDoc(docRef, {
+    const eventData: any = {
       id: docRef.id,
       name,
       createdAt: serverTimestamp()
-    });
+    };
+    if (targetAmount !== undefined && targetAmount > 0) {
+      eventData.targetAmount = targetAmount;
+    }
+    setDoc(docRef, eventData).catch(console.error);
     setCurrentEventId(docRef.id);
     return docRef.id;
   };
 
-  const addContributor = async (fullName: string, phone?: string, notes?: string): Promise<string> => {
+  const addContributor = async (fullName: string, phone?: string, notes?: string, expectedAmount?: number): Promise<string> => {
     const docRef = doc(collection(db, 'contributors'));
-    await setDoc(docRef, {
+    const batch = writeBatch(db);
+    
+    batch.set(docRef, {
       id: docRef.id,
       eventId: currentEventId,
       fullName,
       phone: phone || '',
       notes: notes || '',
-      totalScheduled: 0,
+      totalScheduled: expectedAmount || 0,
       totalPaid: 0,
-      remainingBalance: 0,
+      remainingBalance: expectedAmount || 0,
       createdAt: serverTimestamp()
     });
+
+    if (expectedAmount && expectedAmount > 0) {
+      const scheduleRef = doc(collection(db, 'schedules'));
+      batch.set(scheduleRef, {
+        id: scheduleRef.id,
+        contributorId: docRef.id,
+        eventId: currentEventId,
+        amount: expectedAmount,
+        dueDate: new Date().toLocaleDateString('en-CA'),
+        frequency: 'one-time',
+        installmentNumber: 1,
+        status: 'Pending',
+        amountPaid: 0,
+        remainingAmount: expectedAmount,
+        notes: 'Initial scheduled amount',
+        createdAt: serverTimestamp()
+      });
+    }
+
+    batch.commit().catch(console.error);
     return docRef.id;
   };
 
@@ -323,7 +379,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
-    await batch.commit();
+    batch.commit().catch(console.error);
   };
 
   const editSchedule = async (scheduleId: string, amount: number, dueDate: string): Promise<void> => {
@@ -363,7 +419,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
-    await batch.commit();
+    batch.commit().catch(console.error);
   };
 
   const deleteSchedule = async (scheduleId: string): Promise<void> => {
@@ -389,7 +445,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
-    await batch.commit();
+    batch.commit().catch(console.error);
   };
 
   const recordPayment = async (
@@ -487,137 +543,42 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
-    await batch.commit();
+    batch.commit().catch(console.error);
+  };
+  const addPayout = async (contributorId: string, amount: number, payoutDate: string, notes?: string): Promise<string> => {
+    const docRef = doc(collection(db, 'payouts'));
+    setDoc(docRef, {
+      id: docRef.id,
+      eventId: currentEventId,
+      contributorId,
+      amount,
+      payoutDate,
+      notes: notes || '',
+      createdAt: serverTimestamp()
+    }).catch(console.error);
+    return docRef.id;
   };
 
-  const seedDemoData = async (): Promise<void> => {
-    const demoEventId = 'demo-event';
-    const eventRef = doc(db, 'events', demoEventId);
-    await setDoc(eventRef, {
-      id: demoEventId,
-      name: 'Demo Project Fund',
-      createdAt: serverTimestamp()
-    });
-    
-    setCurrentEventId(demoEventId);
-    
-    const batch = writeBatch(db);
-    const janeId = 'demo-jane';
-    const johnId = 'demo-john';
-    
-    batch.set(doc(db, 'contributors', janeId), {
-      id: janeId,
-      eventId: demoEventId,
-      fullName: 'Jane Doe',
-      phone: '+254 712 345678',
-      notes: 'Demo contributor with installment schedule',
-      totalScheduled: 120000,
-      totalPaid: 60000,
-      remainingBalance: 60000,
-      createdAt: Timestamp.now()
-    });
-    
-    batch.set(doc(db, 'contributors', johnId), {
-      id: johnId,
-      eventId: demoEventId,
-      fullName: 'John Smith',
-      phone: '+254 722 987654',
-      notes: 'Demo contributor with one-time schedules',
-      totalScheduled: 100000,
-      totalPaid: 0,
-      remainingBalance: 100000,
-      createdAt: Timestamp.now()
-    });
-    
-    const today = new Date();
-    const date1 = new Date(today.getFullYear(), today.getMonth() - 2, 1).toLocaleDateString('en-CA');
-    const date2 = new Date(today.getFullYear(), today.getMonth() - 1, 1).toLocaleDateString('en-CA');
-    const date3 = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('en-CA');
-    const date4 = new Date(today.getFullYear(), today.getMonth() + 1, 1).toLocaleDateString('en-CA');
-    
-    const datesJane = [date1, date2, date3, date4];
-    
-    for (let i = 0; i < 4; i++) {
-      const sRef = doc(db, 'schedules', `jane-sched-${i+1}`);
-      const isPaid = i < 2;
-      const amountPaid = isPaid ? 30000 : 0;
-      const status = isPaid ? 'Completed' : calculateStatus(datesJane[i], 30000, 0);
-      
-      batch.set(sRef, {
-        id: `jane-sched-${i+1}`,
-        contributorId: janeId,
-        eventId: demoEventId,
-        amount: 30000,
-        dueDate: datesJane[i],
-        frequency: 'Monthly',
-        installmentNumber: i + 1,
-        status,
-        amountPaid,
-        remainingAmount: 30000 - amountPaid,
-        notes: `Building Fund (Installment ${i+1}/4)`,
-        createdAt: Timestamp.now()
-      });
-    }
-    
-    const dateOverdue = new Date(today.getTime() - 15 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
-    const dateUpcoming = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA');
-    
-    batch.set(doc(db, 'schedules', 'john-sched-1'), {
-      id: 'john-sched-1',
-      contributorId: johnId,
-      eventId: demoEventId,
-      amount: 50000,
-      dueDate: dateOverdue,
-      frequency: 'one-time',
-      installmentNumber: 1,
-      status: 'Overdue',
-      amountPaid: 0,
-      remainingAmount: 50000,
-      notes: 'Initial One-time Pledge',
-      createdAt: Timestamp.now()
-    });
-    
-    batch.set(doc(db, 'schedules', 'john-sched-2'), {
-      id: 'john-sched-2',
-      contributorId: johnId,
-      eventId: demoEventId,
-      amount: 50000,
-      dueDate: dateUpcoming,
-      frequency: 'one-time',
-      installmentNumber: 1,
-      status: 'Upcoming',
-      amountPaid: 0,
-      remainingAmount: 50000,
-      notes: 'Second One-time Pledge',
-      createdAt: Timestamp.now()
-    });
-    
-    batch.set(doc(db, 'payments', 'jane-pay-1'), {
-      id: 'jane-pay-1',
-      contributorId: janeId,
-      scheduleId: 'jane-sched-1',
-      eventId: demoEventId,
-      amount: 30000,
-      paymentMethod: 'M-Pesa',
-      recordedBy: 'Treasurer',
-      notes: 'Initial installment',
-      createdAt: Timestamp.now()
-    });
-    
-    batch.set(doc(db, 'payments', 'jane-pay-2'), {
-      id: 'jane-pay-2',
-      contributorId: janeId,
-      scheduleId: 'jane-sched-2',
-      eventId: demoEventId,
-      amount: 30000,
-      paymentMethod: 'Cash',
-      recordedBy: 'Treasurer',
-      notes: 'Second installment payment',
-      createdAt: Timestamp.now()
-    });
-    
-    await batch.commit();
+  const deletePayout = async (payoutId: string): Promise<void> => {
+    deleteDoc(doc(db, 'payouts', payoutId)).catch(console.error);
   };
+
+  const clearDemoData = async (): Promise<void> => {
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'events', 'demo-event'));
+    batch.delete(doc(db, 'contributors', 'demo-jane'));
+    batch.delete(doc(db, 'contributors', 'demo-john'));
+    batch.delete(doc(db, 'schedules', 'demo-jane-sch1'));
+    batch.delete(doc(db, 'schedules', 'demo-jane-sch2'));
+    batch.delete(doc(db, 'schedules', 'demo-john-sch1'));
+    batch.delete(doc(db, 'payments', 'demo-jane-pay1'));
+    batch.delete(doc(db, 'payments', 'demo-john-pay1'));
+    batch.commit().catch(console.error);
+    if (currentEventId === 'demo-event') {
+      setCurrentEventId('default-event');
+    }
+  };
+
 
   return (
     <JumuikaContext.Provider value={{
@@ -627,6 +588,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       contributors,
       schedules,
       payments,
+      payouts,
       loading,
       addEvent,
       addContributor,
@@ -634,7 +596,9 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       editSchedule,
       deleteSchedule,
       recordPayment,
-      seedDemoData
+      addPayout,
+      deletePayout,
+      clearDemoData
     }}>
       {children}
     </JumuikaContext.Provider>

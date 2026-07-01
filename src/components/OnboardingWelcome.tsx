@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
-import { UserPlus, Database, ArrowRight, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { UserPlus, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { LogoIcon } from './ui/Logo';
 
 interface OnboardingWelcomeProps {
@@ -8,20 +7,6 @@ interface OnboardingWelcomeProps {
 }
 
 export const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onOpenRegisterModal }) => {
-  const { seedDemoData } = useJumuika();
-  const [seeding, setSeeding] = useState(false);
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    try {
-      await seedDemoData();
-    } catch (err) {
-      alert('Failed to seed demo data');
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   const steps = [
     {
       number: '1',
@@ -84,15 +69,6 @@ export const OnboardingWelcome: React.FC<OnboardingWelcomeProps> = ({ onOpenRegi
           <UserPlus size={22} />
           Register First Contributor
           <ArrowRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
-        </button>
-
-        <button 
-          onClick={handleSeed} 
-          disabled={seeding}
-          className="flex items-center justify-center gap-2 px-8 py-4 bg-surface hover:bg-foreground/5 border border-border text-foreground font-bold rounded-xl text-lg transition-all hover:border-muted hover:-translate-y-1 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <Database size={22} className="text-muted" />
-          {seeding ? 'Seeding workspace...' : 'Seed Demo Workspace'}
         </button>
       </div>
 
