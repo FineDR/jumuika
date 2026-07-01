@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useJumuika } from '../context/JumuikaContext';
-import { Calendar, AlertCircle, Clock, CheckCircle2, User, ChevronRight } from 'lucide-react';
+import { Calendar, AlertCircle, Clock, CheckCircle2, User, } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/Button';
 
 interface DashboardProps {
   onSelectContributorId: (id: string) => void;
@@ -36,7 +35,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectContributorId }) =
   const dueThisWeekAmount = dueThisWeekSchedules.reduce((acc, curr) => acc + curr.remainingAmount, 0);
   const overdueAmount = overdueSchedules.reduce((acc, curr) => acc + curr.remainingAmount, 0);
   const upcomingAmount = upcomingSchedules.reduce((acc, curr) => acc + curr.remainingAmount, 0);
-  
+
   // Total completed payments sum
   const completedAmount = payments.reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -174,12 +173,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectContributorId }) =
                       <User size={14} className="text-muted shrink-0" />
                       <span className="font-semibold text-sm text-foreground truncate">{getContributorName(schedule.contributorId)}</span>
                     </div>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                      schedule.status === 'Completed' ? 'bg-success/10 text-success' :
-                      schedule.status === 'Partially Paid' ? 'bg-info/10 text-info' :
-                      schedule.status === 'Due Today' ? 'bg-warning/10 text-warning' :
-                      schedule.status === 'Overdue' ? 'bg-danger/10 text-danger' : 'bg-muted/10 text-muted'
-                    }`}>{schedule.status}</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${schedule.status === 'Completed' ? 'bg-success/10 text-success' :
+                        schedule.status === 'Partially Paid' ? 'bg-info/10 text-info' :
+                          schedule.status === 'Due Today' ? 'bg-warning/10 text-warning' :
+                            schedule.status === 'Overdue' ? 'bg-danger/10 text-danger' : 'bg-muted/10 text-muted'
+                      }`}>{schedule.status}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted">
                     <span>Due: <strong className="text-foreground">{schedule.dueDate}</strong></span>
@@ -220,12 +218,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onSelectContributorId }) =
                       <td className="px-4 py-4 text-sm text-danger text-right font-medium">{schedule.remainingAmount.toLocaleString()}</td>
                       <td className="px-4 py-4 text-sm text-foreground">{schedule.dueDate}</td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                          schedule.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
-                          schedule.status === 'Partially Paid' ? 'bg-info/10 text-info border border-info/20' :
-                          schedule.status === 'Due Today' ? 'bg-warning/10 text-warning border border-warning/20' :
-                          schedule.status === 'Overdue' ? 'bg-danger/10 text-danger border border-danger/20' : 'bg-muted/10 text-muted border border-muted/20'
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${schedule.status === 'Completed' ? 'bg-success/10 text-success border border-success/20' :
+                            schedule.status === 'Partially Paid' ? 'bg-info/10 text-info border border-info/20' :
+                              schedule.status === 'Due Today' ? 'bg-warning/10 text-warning border border-warning/20' :
+                                schedule.status === 'Overdue' ? 'bg-danger/10 text-danger border border-danger/20' : 'bg-muted/10 text-muted border border-muted/20'
+                          }`}>
                           {schedule.status}
                         </span>
                       </td>

@@ -226,7 +226,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
             <div className="relative pl-6 sm:pl-8 border-l-2 border-border/50 ml-2 sm:ml-4 space-y-8">
               {contributorSchedules.map((schedule) => {
                 const isPaid = schedule.status === 'Completed';
-                const isPartiallyPaid = schedule.status === 'Partially Paid';
+                // Check for partially paid status
                 const canModify = schedule.amountPaid === 0;
 
                 const statusColors: Record<string, string> = {

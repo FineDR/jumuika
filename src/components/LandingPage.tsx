@@ -3,25 +3,25 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
-import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform, type Variants } from 'framer-motion';
 import { LogoIcon } from './ui/Logo';
 import {
-  ArrowRight, Calendar, Layers, ShieldCheck, Users,
+  ArrowRight, Calendar, Layers, Users,
   TrendingUp, Sparkles, CheckCircle, Star, Globe, Sun, Moon,
   Zap, BarChart2, Clock, Lock, ChevronRight, Play
 } from 'lucide-react';
 import { Button } from './ui/Button';
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } }
 };
-const stagger = {
+const stagger: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.05 } }
 };
-const scaleIn = {
+const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.92 },
   visible: { opacity: 1, scale: 1, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } }
 };
@@ -54,8 +54,7 @@ export const LandingPage: React.FC = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { scrollY } = useScroll();
   // Navbar becomes slightly more opaque and adds shadow on scroll
-  const navBg = useTransform(scrollY, [0, 80], ['rgba(0,0,0,0)', 'rgba(0,0,0,0.15)']);
-  const navShadow = useTransform(scrollY, [0, 80], ['0 0 0 0 rgba(0,0,0,0)', '0 4px 32px 0 rgba(0,0,0,0.18)']);
+  const navShadow = useTransform(scrollY, [0, 80], ['none', '0 10px 30px -10px rgba(0,0,0,0.1)']);
 
   const toggleLanguage = () => i18n.changeLanguage(isSwahili ? 'en' : 'sw');
   const handleLaunch = () => navigate(user ? '/dashboard' : '/auth');
