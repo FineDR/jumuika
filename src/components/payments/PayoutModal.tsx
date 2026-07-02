@@ -67,12 +67,12 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
 
   useEffect(() => {
     if (isOpen) {
-      setAmount('');
+      setAmount(currentPoolBalance > 0 ? currentPoolBalance.toString() : '');
       setPayoutDate(new Date().toLocaleDateString('en-CA'));
       setNotes('');
       setError('');
     }
-  }, [isOpen, contributorId]);
+  }, [isOpen, contributorId, currentPoolBalance]);
 
   if (!isOpen || !contributor) return null;
 
