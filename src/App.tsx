@@ -11,6 +11,7 @@ import { ContributorProfile } from './components/contributors/ContributorProfile
 import { ContributorRegisterModal } from './components/contributors/ContributorRegisterModal';
 import { ScheduleModal } from './components/schedules/ScheduleModal';
 import { BulkScheduleModal } from './components/schedules/BulkScheduleModal';
+import { RotationManager } from './components/merrygoround/RotationManager';
 import { PaymentModal } from './components/payments/PaymentModal';
 import { PayoutModal } from './components/payments/PayoutModal';
 import { CalendarView } from './components/calendar/CalendarView';
@@ -147,6 +148,21 @@ function AppContent() {
         );
       case 'payments':
         return <PaymentsLog />;
+      case 'rotation':
+        return (
+          <div className="flex flex-col gap-6">
+            <div>
+              <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground">Rotation Order</h2>
+              <p className="text-sm text-muted mt-1">Set the payout cycle for this Merry-Go-Round event</p>
+            </div>
+            <RotationManager
+              isOpen={true}
+              onClose={() => setActiveTab('contributors')}
+              onOpenPayoutModal={(id) => handleOpenPayoutModal(id)}
+              inlinePage={true}
+            />
+          </div>
+        );
       case 'settings':
         return <Settings />;
       default:

@@ -3,7 +3,7 @@ import { useJumuika } from '../../context/JumuikaContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon, RefreshCw } from 'lucide-react';
 import { LogoIcon } from '../ui/Logo';
 
 interface SidebarProps {
@@ -36,6 +36,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: t('dashboard', 'Dashboard'), icon: LayoutDashboard },
     { id: 'contributors', label: t('contributors', 'Contributors'), icon: Users },
+    ...(currentEvent?.eventType === 'merry-go-round'
+      ? [{ id: 'rotation', label: 'Rotation', icon: RefreshCw }]
+      : []),
     { id: 'calendar', label: t('calendar', 'Calendar View'), icon: Calendar },
     { id: 'payments', label: t('payments', 'Payments Log'), icon: Receipt },
     { id: 'settings', label: t('settings', 'Settings'), icon: SettingsIcon },

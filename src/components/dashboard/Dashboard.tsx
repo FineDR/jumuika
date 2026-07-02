@@ -25,6 +25,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const currentEvent = events.find(e => e.id === currentEventId);
   const todayStr = new Date().toLocaleDateString('en-CA');
 
+  const nextMemberName = useMemo(() => {
+    if (currentEvent?.eventType !== 'merry-go-round') return '';
+    const order: string[] = (currentEvent as any)?.rotationOrder ?? [];
+    const eventContributors = contributors.filter(c => c.eventId === currentEventId);
+    if (eventContributors.length === 0) return '';
+    
+    const activeOrder = order.length > 0 
+      ? [...order.filter(id => eventContributors.some(c => c.id === id)), ...eventContributors.map(c => c.id).filter(id => !order.includes(id))]
+      : eventContributors.map(c => c.id);
+
+    const eventPayouts = payouts.filter(p => p.eventId === currentEventId);
+    const cycleLength = activeOrder.length;
+    if (cycleLength === 0) return '';
+    const totalPayoutsCount = eventPayouts.length;
+    const currentTurnIndex = totalPayoutsCount % cycleLength;
+    const nextMemberId = activeOrder[currentTurnIndex];
+    const nextMember = contributors.find(c => c.id === nextMemberId);
+    return nextMember ? nextMember.fullName : 'None';
+  }, [currentEvent, contributors, payouts, currentEventId]);
+
   // Calculations
   const { 
     totalExpected, 
@@ -180,10 +200,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
           {currentEvent?.eventType === 'merry-go-round' && currentPoolBalance > 0 && (
             <div className="flex items-center gap-3 px-4 py-3 bg-violet-500/8 border border-violet-500/20 rounded-xl">
-              <RefreshCw size={16} className="text-violet-400 shrink-0" />
+              <RefreshCw size={16} className="text-violet-400 shrink-0 animate-spin-slow" />
               <p className="text-sm font-semibold text-violet-400 flex-1">
                 Pool ready for payout —{' '}
-                <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span> available to disburse to the next member
+                <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span> available to disburse{nextMemberName && nextMemberName !== 'None' ? <> to <span className="underline font-bold">{nextMemberName}</span></> : ' to the next member'}
               </p>
             </div>
           )}

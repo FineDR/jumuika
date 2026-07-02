@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useJumuika } from '../../context/JumuikaContext';
-import { X, Calendar, AlignLeft, DollarSign, Wallet } from 'lucide-react';
+import { X, Calendar, AlignLeft, DollarSign, Wallet, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
 
@@ -11,7 +11,7 @@ interface PayoutModalProps {
 }
 
 export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contributorId }) => {
-  const { addPayout, contributors, payments, payouts } = useJumuika();
+  const { addPayout, contributors, payments, payouts, events, currentEventId } = useJumuika();
   const contributor = contributors.find(c => c.id === contributorId);
   
   const [amount, setAmount] = useState('');
@@ -19,6 +19,44 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const currentEvent = events.find(e => e.id === currentEventId);
+  const isMerryGoRound = currentEvent?.eventType === 'merry-go-round';
+
+  // Rotation warnings calculations
+  const { isOutOfTurn, isAlreadyPaid, nextMemberName } = React.useMemo(() => {
+    if (!isMerryGoRound || !isOpen || !contributorId) {
+      return { isOutOfTurn: false, isAlreadyPaid: false, nextMemberName: '' };
+    }
+    const order: string[] = (currentEvent as any)?.rotationOrder ?? [];
+    const eventContributors = contributors.filter(c => c.eventId === currentEventId);
+    
+    // Sort out default order if no custom order is saved
+    const activeOrder = order.length > 0 
+      ? [...order.filter(id => eventContributors.some(c => c.id === id)), ...eventContributors.map(c => c.id).filter(id => !order.includes(id))]
+      : eventContributors.map(c => c.id);
+
+    const eventPayouts = payouts.filter(p => p.eventId === currentEventId);
+    const cycleLength = activeOrder.length;
+    const totalPayouts = eventPayouts.length;
+    const currentTurnIndex = cycleLength > 0 ? totalPayouts % cycleLength : 0;
+    const nextMemberId = cycleLength > 0 ? activeOrder[currentTurnIndex] : null;
+
+    const payoutsThisCycle = totalPayouts % cycleLength;
+    const paidThisCycle = new Set(
+      eventPayouts
+        .slice(0, payoutsThisCycle === 0 && totalPayouts > 0 ? cycleLength : payoutsThisCycle)
+        .map(p => p.contributorId)
+    );
+
+    const nextMember = contributors.find(c => c.id === nextMemberId);
+    
+    return {
+      isOutOfTurn: nextMemberId ? contributorId !== nextMemberId : false,
+      isAlreadyPaid: paidThisCycle.has(contributorId),
+      nextMemberName: nextMember ? nextMember.fullName : 'None'
+    };
+  }, [isMerryGoRound, isOpen, contributorId, currentEvent, contributors, payouts, currentEventId]);
 
   // Calculate current pool balance
   const currentPoolBalance = React.useMemo(() => {
@@ -94,7 +132,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
         </div>
 
         <div className="p-5 overflow-y-auto">
-          <div className="bg-foreground/5 rounded-xl p-4 mb-5 border border-border/50">
+          <div className="bg-foreground/5 rounded-xl p-4 mb-4 border border-border/50">
             <p className="text-sm text-muted mb-1">Paying out to:</p>
             <p className="font-bold text-foreground text-lg">{contributor.fullName}</p>
             <div className="mt-2 flex justify-between items-center text-sm border-t border-border/50 pt-2">
@@ -102,6 +140,26 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
               <span className="font-bold text-success">{currentPoolBalance.toLocaleString()} TZS</span>
             </div>
           </div>
+
+          {isAlreadyPaid && (
+            <div className="mb-4 flex items-start gap-2.5 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-xl">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Already Received Turn</p>
+                <p className="font-normal opacity-90 mt-0.5">This member has already received their payout in the current cycle.</p>
+              </div>
+            </div>
+          )}
+
+          {!isAlreadyPaid && isOutOfTurn && (
+            <div className="mb-4 flex items-start gap-2.5 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-xl">
+              <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Out of Turn Payout</p>
+                <p className="font-normal opacity-90 mt-0.5">The next member scheduled in rotation order is <span className="underline font-semibold">{nextMemberName}</span>.</p>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-danger/10 border border-danger/20 text-danger text-sm rounded-xl">

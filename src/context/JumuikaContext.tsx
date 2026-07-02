@@ -58,6 +58,7 @@ interface JumuikaContextType {
   ) => Promise<void>;
   addPayout: (contributorId: string, amount: number, payoutDate: string, notes?: string) => Promise<string>;
   deletePayout: (payoutId: string) => Promise<void>;
+  setRotationOrder: (order: string[]) => Promise<void>;
   bulkScheduleAll: (
     type: 'one-time' | 'installment',
     amount: number,
@@ -577,6 +578,12 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     deleteDoc(doc(db, 'payouts', payoutId)).catch(console.error);
   };
 
+  const setRotationOrder = async (order: string[]): Promise<void> => {
+    if (!currentEventId) return;
+    const { updateDoc } = await import('firebase/firestore');
+    await updateDoc(doc(db, 'events', currentEventId), { rotationOrder: order });
+  };
+
   const bulkScheduleAll = async (
     type: 'one-time' | 'installment',
     amount: number,
@@ -704,6 +711,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       recordPayment,
       addPayout,
       deletePayout,
+      setRotationOrder,
       bulkScheduleAll,
       clearDemoData
     }}>

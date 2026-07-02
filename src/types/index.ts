@@ -42,6 +42,7 @@ export interface Event {
   name: string;
   eventType?: 'harambee' | 'merry-go-round' | 'table-banking';
   targetAmount?: number;
+  rotationOrder?: string[]; // ordered contributorIds for merry-go-round
   createdAt: any;
 }
 
