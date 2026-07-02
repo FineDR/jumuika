@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { 
   Calendar, AlertCircle, Clock, CheckCircle2, User, 
   Wallet, TrendingUp, ArrowRight, Activity

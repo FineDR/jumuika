@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { ChevronLeft, ChevronRight, User, X } from 'lucide-react';
 
 interface CalendarViewProps {

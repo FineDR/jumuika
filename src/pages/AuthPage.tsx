@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { LogoIcon } from './ui/Logo';
+import { LogoIcon } from '../components/ui/Logo';
 
 export const AuthPage: React.FC = () => {
   const { user, signInWithGoogle } = useAuth();

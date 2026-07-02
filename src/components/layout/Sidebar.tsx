@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useJumuika } from '../../context/JumuikaContext';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon } from 'lucide-react';
-import { LogoIcon } from './ui/Logo';
+import { LogoIcon } from '../ui/Logo';
 
 interface SidebarProps {
   activeTab: string;

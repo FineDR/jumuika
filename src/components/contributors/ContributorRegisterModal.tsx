@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import React, { useState, useEffect } from 'react';
+import { useJumuika } from '../../context/JumuikaContext';
 import { X, User, Phone, AlignLeft, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface ContributorRegisterModalProps {
   isOpen: boolean;
@@ -12,7 +12,6 @@ interface ContributorRegisterModalProps {
 
 export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { addContributor, events, currentEventId } = useJumuika();
-  const currentEvent = events.find(e => e.id === currentEventId);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -20,10 +19,12 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  React.useEffect(() => {
+  const currentEvent = events.find(e => e.id === currentEventId);
+
+  useEffect(() => {
     if (isOpen && currentEvent?.targetAmount) {
       setExpectedAmount(currentEvent.targetAmount.toString());
-    } else if (isOpen) {
+    } else if (!isOpen) {
       setExpectedAmount('');
     }
   }, [isOpen, currentEvent?.targetAmount]);

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useJumuika, type Schedule } from '../context/JumuikaContext';
+import { useJumuika, type Schedule } from '../../context/JumuikaContext';
 import { 
   ArrowLeft, Plus, DollarSign, Edit2, Trash2, 
   Clock, AlertCircle, X, Phone, FileText, Wallet
 } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface ContributorProfileProps {
   contributorId: string;

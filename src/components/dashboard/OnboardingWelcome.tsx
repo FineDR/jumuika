@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserPlus, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { LogoIcon } from './ui/Logo';
+import { LogoIcon } from '../ui/Logo';
 
 interface OnboardingWelcomeProps {
   onOpenRegisterModal: () => void;

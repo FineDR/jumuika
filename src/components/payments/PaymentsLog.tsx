@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { Search, User, Receipt } from 'lucide-react';
 
 export const PaymentsLog: React.FC = () => {

@@ -1,8 +1,8 @@
 import React from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { useTranslation } from 'react-i18next';
 import { Download, Database, Users, Receipt, CalendarRange, Landmark } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 export const Settings: React.FC = () => {
   const { events, currentEventId, contributors, schedules, payments, clearDemoData } = useJumuika();

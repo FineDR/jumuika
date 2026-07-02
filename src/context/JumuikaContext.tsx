@@ -10,65 +10,17 @@ import {
   writeBatch,
   serverTimestamp,
   Timestamp,
-  deleteDoc
+  deleteDoc,
+  runTransaction,
+  getDocs
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../services/firebase';
+import type { Contributor, Schedule, Payment, Event, Payout } from '../types';
+import { calculateStatus, generateInstallmentDates } from '../utils/schedules';
 
-export interface Contributor {
-  id: string;
-  eventId: string;
-  fullName: string;
-  phone?: string;
-  notes?: string;
-  totalScheduled: number;
-  totalPaid: number;
-  remainingBalance: number;
-  createdAt: any;
-}
-
-export interface Schedule {
-  id: string;
-  contributorId: string;
-  eventId: string;
-  amount: number;
-  dueDate: string; // YYYY-MM-DD
-  frequency: string; // 'one-time' | 'Daily' | 'Weekly' | 'Biweekly' | 'Monthly' | 'Custom'
-  installmentNumber: number;
-  status: 'Upcoming' | 'Due Today' | 'Overdue' | 'Partially Paid' | 'Completed';
-  amountPaid: number;
-  remainingAmount: number;
-  notes?: string;
-  createdAt: any;
-}
-
-export interface Payment {
-  id: string;
-  contributorId: string;
-  scheduleId?: string | null;
-  eventId: string;
-  amount: number;
-  paymentMethod: string;
-  recordedBy: string;
-  notes?: string;
-  createdAt: any;
-}
-
-export interface Event {
-  id: string;
-  name: string;
-  targetAmount?: number;
-  createdAt: any;
-}
-
-export interface Payout {
-  id: string;
-  eventId: string;
-  contributorId: string;
-  amount: number;
-  payoutDate: string;
-  notes?: string;
-  createdAt?: any;
-}
+// Re-export type definitions for backwards compatibility and ease of import
+export type { Contributor, Schedule, Payment, Event, Payout };
+export { calculateStatus, generateInstallmentDates };
 
 interface JumuikaContextType {
   currentEventId: string;
@@ -90,7 +42,9 @@ interface JumuikaContextType {
     dueDateOrStartDate: string,
     installmentsCount?: number,
     frequency?: string,
-    notes?: string
+    notes?: string,
+    replaceAmount?: number,
+    schedulesToDelete?: string[]
   ) => Promise<void>;
   editSchedule: (scheduleId: string, amount: number, dueDate: string) => Promise<void>;
   deleteSchedule: (scheduleId: string) => Promise<void>;
@@ -108,46 +62,6 @@ interface JumuikaContextType {
 }
 
 const JumuikaContext = createContext<JumuikaContextType | undefined>(undefined);
-
-export const calculateStatus = (dueDateStr: string, amount: number, amountPaid: number): Schedule['status'] => {
-  if (amountPaid >= amount) {
-    return 'Completed';
-  }
-  if (amountPaid > 0) {
-    return 'Partially Paid';
-  }
-  
-  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-  if (dueDateStr < todayStr) {
-    return 'Overdue';
-  } else if (dueDateStr === todayStr) {
-    return 'Due Today';
-  } else {
-    return 'Upcoming';
-  }
-};
-
-export const generateInstallmentDates = (startDateStr: string, count: number, frequency: string): string[] => {
-  const dates: string[] = [];
-  const start = new Date(startDateStr);
-  
-  for (let i = 0; i < count; i++) {
-    const d = new Date(start);
-    if (frequency === 'Daily') {
-      d.setDate(start.getDate() + i);
-    } else if (frequency === 'Weekly') {
-      d.setDate(start.getDate() + (i * 7));
-    } else if (frequency === 'Biweekly') {
-      d.setDate(start.getDate() + (i * 14));
-    } else if (frequency === 'Monthly') {
-      d.setMonth(start.getMonth() + i);
-    } else { // Custom - default to 30 days
-      d.setDate(start.getDate() + (i * 30));
-    }
-    dates.push(d.toLocaleDateString('en-CA')); // Safe local YYYY-MM-DD
-  }
-  return dates;
-};
 
 export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentEventId, setCurrentEventId] = useState<string>('default-event');
@@ -231,6 +145,8 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         list.push({ id: doc.id, ...doc.data() } as Payment);
       });
       setPayments(list);
+    }, (error) => {
+      console.error("Error fetching payments:", error);
     });
 
     const payoutsQuery = query(
@@ -244,6 +160,9 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         list.push({ id: doc.id, ...doc.data() } as Payout);
       });
       setPayouts(list);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching payouts:", error);
       setLoading(false);
     });
 
@@ -297,7 +216,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
         dueDate: new Date().toLocaleDateString('en-CA'),
         frequency: 'one-time',
         installmentNumber: 1,
-        status: 'Pending',
+        status: calculateStatus(new Date().toLocaleDateString('en-CA'), expectedAmount, 0),
         amountPaid: 0,
         remainingAmount: expectedAmount,
         notes: 'Initial scheduled amount',
@@ -305,8 +224,13 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     }
 
-    batch.commit().catch(console.error);
-    return docRef.id;
+    try {
+      await batch.commit();
+      return docRef.id;
+    } catch (e: any) {
+      console.error('addContributor failed:', e);
+      throw new Error(e.message || 'Failed to add contributor');
+    }
   };
 
   const addSchedule = async (
@@ -316,136 +240,187 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     dueDateOrStartDate: string,
     installmentsCount: number = 1,
     frequency: string = 'Monthly',
-    notes: string = ''
+    notes: string = '',
+    replaceAmount: number = 0,
+    schedulesToDelete: string[] = []
   ): Promise<void> => {
-    const batch = writeBatch(db);
-    let totalScheduledAdded = 0;
-    
-    if (type === 'one-time') {
-      const scheduleRef = doc(collection(db, 'schedules'));
-      const status = calculateStatus(dueDateOrStartDate, amountOrTarget, 0);
-      batch.set(scheduleRef, {
-        id: scheduleRef.id,
-        contributorId,
-        eventId: currentEventId,
-        amount: amountOrTarget,
-        dueDate: dueDateOrStartDate,
-        frequency: 'one-time',
-        installmentNumber: 1,
-        status,
-        amountPaid: 0,
-        remainingAmount: amountOrTarget,
-        notes,
-        createdAt: serverTimestamp()
-      });
-      totalScheduledAdded = amountOrTarget;
-    } else {
-      const dates = generateInstallmentDates(dueDateOrStartDate, installmentsCount, frequency);
-      const baseAmount = Math.floor(amountOrTarget / installmentsCount);
-      const remainder = amountOrTarget - (baseAmount * installmentsCount);
-      
-      for (let i = 0; i < installmentsCount; i++) {
+    try {
+      const schedulesToCreate: any[] = [];
+      let totalScheduledAdded = 0;
+
+      if (type === 'one-time') {
         const scheduleRef = doc(collection(db, 'schedules'));
-        const installmentAmount = i === 0 ? baseAmount + remainder : baseAmount;
-        const status = calculateStatus(dates[i], installmentAmount, 0);
-        
-        batch.set(scheduleRef, {
-          id: scheduleRef.id,
-          contributorId,
-          eventId: currentEventId,
-          amount: installmentAmount,
-          dueDate: dates[i],
-          frequency,
-          installmentNumber: i + 1,
-          status,
-          amountPaid: 0,
-          remainingAmount: installmentAmount,
-          notes: notes ? `${notes} (Installment ${i+1}/${installmentsCount})` : '',
-          createdAt: serverTimestamp()
+        const status = calculateStatus(dueDateOrStartDate, amountOrTarget, 0);
+        schedulesToCreate.push({
+          ref: scheduleRef,
+          data: {
+            id: scheduleRef.id,
+            contributorId,
+            eventId: currentEventId,
+            amount: amountOrTarget,
+            dueDate: dueDateOrStartDate,
+            frequency: 'one-time',
+            installmentNumber: 1,
+            status,
+            amountPaid: 0,
+            remainingAmount: amountOrTarget,
+            notes,
+            createdAt: serverTimestamp()
+          }
         });
+        totalScheduledAdded = amountOrTarget;
+      } else {
+        const dates = generateInstallmentDates(dueDateOrStartDate, installmentsCount, frequency);
+        const baseAmount = Math.floor(amountOrTarget / installmentsCount);
+        const remainder = amountOrTarget - (baseAmount * installmentsCount);
+        
+        for (let i = 0; i < installmentsCount; i++) {
+          const scheduleRef = doc(collection(db, 'schedules'));
+          const installmentAmount = i === 0 ? baseAmount + remainder : baseAmount;
+          const status = calculateStatus(dates[i], installmentAmount, 0);
+          
+          schedulesToCreate.push({
+            ref: scheduleRef,
+            data: {
+              id: scheduleRef.id,
+              contributorId,
+              eventId: currentEventId,
+              amount: installmentAmount,
+              dueDate: dates[i],
+              frequency,
+              installmentNumber: i + 1,
+              status,
+              amountPaid: 0,
+              remainingAmount: installmentAmount,
+              notes: notes ? `${notes} (Installment ${i+1}/${installmentsCount})` : '',
+              createdAt: serverTimestamp()
+            }
+          });
+        }
+        totalScheduledAdded = amountOrTarget;
       }
-      totalScheduledAdded = amountOrTarget;
-    }
 
-    // Update contributor
-    const contributorRef = doc(db, 'contributors', contributorId);
-    const contributor = contributors.find(c => c.id === contributorId);
-    if (contributor) {
-      const newTotalScheduled = (contributor.totalScheduled || 0) + totalScheduledAdded;
-      const newRemaining = newTotalScheduled - (contributor.totalPaid || 0);
-      batch.update(contributorRef, {
-        totalScheduled: newTotalScheduled,
-        remainingBalance: newRemaining
+      // 1. Transactional update of the contributor total
+      await runTransaction(db, async (transaction) => {
+        const contributorRef = doc(db, 'contributors', contributorId);
+        const contributorDoc = await transaction.get(contributorRef);
+        if (!contributorDoc.exists()) {
+          throw new Error('Contributor does not exist!');
+        }
+        const contributorData = contributorDoc.data();
+        
+        const newTotalScheduled = (contributorData.totalScheduled || 0) + totalScheduledAdded - replaceAmount;
+        const newRemaining = newTotalScheduled - (contributorData.totalPaid || 0);
+        transaction.update(contributorRef, {
+          totalScheduled: newTotalScheduled,
+          remainingBalance: newRemaining
+        });
       });
-    }
 
-    batch.commit().catch(console.error);
+      // 2. Chunked batch deletes for replaced schedules
+      const BATCH_LIMIT = 450;
+      if (schedulesToDelete && schedulesToDelete.length > 0) {
+        for (let i = 0; i < schedulesToDelete.length; i += BATCH_LIMIT) {
+          const chunk = schedulesToDelete.slice(i, i + BATCH_LIMIT);
+          const batch = writeBatch(db);
+          chunk.forEach(id => {
+            batch.delete(doc(db, 'schedules', id));
+          });
+          await batch.commit();
+        }
+      }
+
+      // 3. Chunked batch writes for new schedules
+      for (let i = 0; i < schedulesToCreate.length; i += BATCH_LIMIT) {
+        const chunk = schedulesToCreate.slice(i, i + BATCH_LIMIT);
+        const batch = writeBatch(db);
+        chunk.forEach(item => {
+          batch.set(item.ref, item.data);
+        });
+        await batch.commit();
+      }
+
+    } catch (e: any) {
+      console.error('addSchedule failed:', e);
+      throw new Error(e.message || 'Operation failed');
+    }
   };
 
   const editSchedule = async (scheduleId: string, amount: number, dueDate: string): Promise<void> => {
-    const batch = writeBatch(db);
-    const scheduleRef = doc(db, 'schedules', scheduleId);
-    const schedule = schedules.find(s => s.id === scheduleId);
-    
-    if (!schedule) return;
-    
-    const amountDifference = amount - schedule.amount;
-    const newAmountPaid = Math.min(schedule.amountPaid, amount); // Cap already paid at new amount
-    const newRemaining = amount - newAmountPaid;
-    const newStatus = calculateStatus(dueDate, amount, newAmountPaid);
-    
-    batch.update(scheduleRef, {
-      amount,
-      dueDate,
-      amountPaid: newAmountPaid,
-      remainingAmount: newRemaining,
-      status: newStatus
-    });
+    try {
+      await runTransaction(db, async (transaction) => {
+        const scheduleRef = doc(db, 'schedules', scheduleId);
+        const scheduleDoc = await transaction.get(scheduleRef);
+        if (!scheduleDoc.exists()) return;
+        const schedule = scheduleDoc.data() as Schedule;
 
-    // Update contributor totals
-    const contributorRef = doc(db, 'contributors', schedule.contributorId);
-    const contributor = contributors.find(c => c.id === schedule.contributorId);
-    if (contributor) {
-      const newTotalScheduled = (contributor.totalScheduled || 0) + amountDifference;
-      // Adjust totalPaid if amountPaid was capped down
-      const totalPaidDifference = newAmountPaid - schedule.amountPaid;
-      const newTotalPaid = (contributor.totalPaid || 0) + totalPaidDifference;
-      const newRemainingBalance = newTotalScheduled - newTotalPaid;
-      
-      batch.update(contributorRef, {
-        totalScheduled: newTotalScheduled,
-        totalPaid: newTotalPaid,
-        remainingBalance: newRemainingBalance
+        const amountDifference = amount - schedule.amount;
+        const newAmountPaid = Math.min(schedule.amountPaid, amount); // Cap already paid at new amount
+        const newRemaining = amount - newAmountPaid;
+        const newStatus = calculateStatus(dueDate, amount, newAmountPaid);
+        
+        transaction.update(scheduleRef, {
+          amount,
+          dueDate,
+          amountPaid: newAmountPaid,
+          remainingAmount: newRemaining,
+          status: newStatus
+        });
+
+        // Update contributor totals
+        const contributorRef = doc(db, 'contributors', schedule.contributorId);
+        const contributorDoc = await transaction.get(contributorRef);
+        if (contributorDoc.exists()) {
+          const contributor = contributorDoc.data() as Contributor;
+          const newTotalScheduled = (contributor.totalScheduled || 0) + amountDifference;
+          // Adjust totalPaid if amountPaid was capped down
+          const totalPaidDifference = newAmountPaid - schedule.amountPaid;
+          const newTotalPaid = (contributor.totalPaid || 0) + totalPaidDifference;
+          const newRemainingBalance = newTotalScheduled - newTotalPaid;
+          
+          transaction.update(contributorRef, {
+            totalScheduled: newTotalScheduled,
+            totalPaid: newTotalPaid,
+            remainingBalance: newRemainingBalance
+          });
+        }
       });
+    } catch (e) {
+      console.error(e);
     }
-
-    batch.commit().catch(console.error);
   };
 
   const deleteSchedule = async (scheduleId: string): Promise<void> => {
-    const batch = writeBatch(db);
-    const schedule = schedules.find(s => s.id === scheduleId);
-    if (!schedule) return;
+    try {
+      await runTransaction(db, async (transaction) => {
+        const scheduleRef = doc(db, 'schedules', scheduleId);
+        const scheduleDoc = await transaction.get(scheduleRef);
+        if (!scheduleDoc.exists()) return;
+        const schedule = scheduleDoc.data() as Schedule;
 
-    // Delete schedule
-    batch.delete(doc(db, 'schedules', scheduleId));
+        // Delete schedule
+        transaction.delete(scheduleRef);
 
-    // Update contributor
-    const contributorRef = doc(db, 'contributors', schedule.contributorId);
-    const contributor = contributors.find(c => c.id === schedule.contributorId);
-    if (contributor) {
-      const newTotalScheduled = Math.max(0, (contributor.totalScheduled || 0) - schedule.amount);
-      const newTotalPaid = Math.max(0, (contributor.totalPaid || 0) - schedule.amountPaid);
-      const newRemainingBalance = newTotalScheduled - newTotalPaid;
-      
-      batch.update(contributorRef, {
-        totalScheduled: newTotalScheduled,
-        totalPaid: newTotalPaid,
-        remainingBalance: newRemainingBalance
+        // Update contributor
+        const contributorRef = doc(db, 'contributors', schedule.contributorId);
+        const contributorDoc = await transaction.get(contributorRef);
+        if (contributorDoc.exists()) {
+          const contributor = contributorDoc.data() as Contributor;
+          const newTotalScheduled = Math.max(0, (contributor.totalScheduled || 0) - schedule.amount);
+          const newTotalPaid = Math.max(0, (contributor.totalPaid || 0) - schedule.amountPaid);
+          const newRemainingBalance = newTotalScheduled - newTotalPaid;
+          
+          transaction.update(contributorRef, {
+            totalScheduled: newTotalScheduled,
+            totalPaid: newTotalPaid,
+            remainingBalance: newRemainingBalance
+          });
+        }
       });
+    } catch (e: any) {
+      console.error('editSchedule transaction failed:', e);
+      throw new Error(e.message || 'Transaction failed');
     }
-
-    batch.commit().catch(console.error);
   };
 
   const recordPayment = async (
@@ -456,94 +431,124 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     recordedBy: string,
     notes: string = ''
   ): Promise<void> => {
-    const batch = writeBatch(db);
-    
-    // 1. Fetch contributor's schedules with remaining balance
-    const contributorSchedules = schedules
-      .filter(s => s.contributorId === contributorId && s.remainingAmount > 0)
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate)); // Order by due date
+    try {
+      // Step 1: Query schedules outside transaction to get reference IDs
+      const schedulesRef = collection(db, 'schedules');
+      const q = query(
+        schedulesRef,
+        where('contributorId', '==', contributorId),
+        where('remainingAmount', '>', 0)
+      );
+      const schedulesSnapshot = await getDocs(q);
 
-    let remainingPayment = paymentAmount;
-    const schedulesToUpdate: { id: string; amountPaid: number; remainingAmount: number; status: Schedule['status'] }[] = [];
+      await runTransaction(db, async (transaction) => {
+        // Read 1: Contributor doc
+        const contributorRef = doc(db, 'contributors', contributorId);
+        const contributorDoc = await transaction.get(contributorRef);
+        if (!contributorDoc.exists()) return;
+        const contributor = contributorDoc.data() as Contributor;
 
-    // 2. Apply payment to target schedule first, if specified
-    if (scheduleId) {
-      const targetIdx = contributorSchedules.findIndex(s => s.id === scheduleId);
-      if (targetIdx !== -1) {
-        const schedule = contributorSchedules[targetIdx];
-        const applied = Math.min(remainingPayment, schedule.remainingAmount);
+        // Read 2: Read each schedule doc to ensure transactional isolation and get latest data
+        const contributorSchedules: Schedule[] = [];
+        const promises = schedulesSnapshot.docs.map(async (docSnap) => {
+          const scheduleRef = doc(db, 'schedules', docSnap.id);
+          const scheduleDoc = await transaction.get(scheduleRef);
+          return { exists: scheduleDoc.exists(), id: scheduleDoc.id, data: scheduleDoc.data() };
+        });
         
-        const newPaid = schedule.amountPaid + applied;
-        const newRemaining = schedule.amount - newPaid;
-        const newStatus = calculateStatus(schedule.dueDate, schedule.amount, newPaid);
+        const results = await Promise.all(promises);
+        for (const res of results) {
+          if (res.exists) {
+            contributorSchedules.push({ id: res.id, ...res.data } as Schedule);
+          }
+        }
+        
+        // Sort them by due date
+        contributorSchedules.sort((a, b) => a.dueDate.localeCompare(b.dueDate)); // Order by due date
 
-        schedulesToUpdate.push({
-          id: schedule.id,
-          amountPaid: newPaid,
-          remainingAmount: newRemaining,
-          status: newStatus
+        // Calculate updates
+        let remainingPayment = paymentAmount;
+        const schedulesToUpdate: { id: string; amountPaid: number; remainingAmount: number; status: Schedule['status'] }[] = [];
+
+        // 2. Apply payment to target schedule first, if specified
+        if (scheduleId) {
+          const targetIdx = contributorSchedules.findIndex(s => s.id === scheduleId);
+          if (targetIdx !== -1) {
+            const schedule = contributorSchedules[targetIdx];
+            const applied = Math.min(remainingPayment, schedule.remainingAmount);
+            
+            const newPaid = schedule.amountPaid + applied;
+            const newRemaining = schedule.amount - newPaid;
+            const newStatus = calculateStatus(schedule.dueDate, schedule.amount, newPaid);
+
+            schedulesToUpdate.push({
+              id: schedule.id,
+              amountPaid: newPaid,
+              remainingAmount: newRemaining,
+              status: newStatus
+            });
+
+            remainingPayment -= applied;
+            contributorSchedules.splice(targetIdx, 1); // Remove from list so it doesn't get double-paid
+          }
+        }
+
+        // 3. Cascade overpayment / remaining payment to oldest schedules
+        for (const schedule of contributorSchedules) {
+          if (remainingPayment <= 0) break;
+          const applied = Math.min(remainingPayment, schedule.remainingAmount);
+          
+          const newPaid = schedule.amountPaid + applied;
+          const newRemaining = schedule.amount - newPaid;
+          const newStatus = calculateStatus(schedule.dueDate, schedule.amount, newPaid);
+
+          schedulesToUpdate.push({
+            id: schedule.id,
+            amountPaid: newPaid,
+            remainingAmount: newRemaining,
+            status: newStatus
+          });
+
+          remainingPayment -= applied;
+        }
+
+        // --- Writes start here ---
+
+        // 4. Create payment entry
+        const paymentRef = doc(collection(db, 'payments'));
+        transaction.set(paymentRef, {
+          id: paymentRef.id,
+          contributorId,
+          scheduleId: scheduleId || null,
+          eventId: currentEventId,
+          amount: paymentAmount,
+          paymentMethod,
+          recordedBy,
+          notes: notes + (remainingPayment > 0 ? ` (Overpayment excess of ${remainingPayment.toLocaleString()})` : ''),
+          createdAt: serverTimestamp()
         });
 
-        remainingPayment -= applied;
-        contributorSchedules.splice(targetIdx, 1); // Remove from list so it doesn't get double-paid
-      }
-    }
+        // 5. Update schedules in transaction
+        for (const s of schedulesToUpdate) {
+          transaction.update(doc(db, 'schedules', s.id), {
+            amountPaid: s.amountPaid,
+            remainingAmount: s.remainingAmount,
+            status: s.status
+          });
+        }
 
-    // 3. Cascade overpayment / remaining payment to oldest schedules
-    for (const schedule of contributorSchedules) {
-      if (remainingPayment <= 0) break;
-      const applied = Math.min(remainingPayment, schedule.remainingAmount);
-      
-      const newPaid = schedule.amountPaid + applied;
-      const newRemaining = schedule.amount - newPaid;
-      const newStatus = calculateStatus(schedule.dueDate, schedule.amount, newPaid);
-
-      schedulesToUpdate.push({
-        id: schedule.id,
-        amountPaid: newPaid,
-        remainingAmount: newRemaining,
-        status: newStatus
+        // 6. Update contributor totals
+        const newTotalPaid = (contributor.totalPaid || 0) + paymentAmount;
+        const newRemainingBalance = (contributor.totalScheduled || 0) - newTotalPaid;
+        transaction.update(contributorRef, {
+          totalPaid: newTotalPaid,
+          remainingBalance: newRemainingBalance
+        });
       });
-
-      remainingPayment -= applied;
+    } catch (e: any) {
+      console.error('Payment transaction failed:', e);
+      throw new Error(e.message || 'Transaction failed');
     }
-
-    // 4. Create payment entry
-    const paymentRef = doc(collection(db, 'payments'));
-    batch.set(paymentRef, {
-      id: paymentRef.id,
-      contributorId,
-      scheduleId: scheduleId || null,
-      eventId: currentEventId,
-      amount: paymentAmount,
-      paymentMethod,
-      recordedBy,
-      notes: notes + (remainingPayment > 0 ? ` (Overpayment excess of ${remainingPayment.toLocaleString()})` : ''),
-      createdAt: serverTimestamp()
-    });
-
-    // 5. Update schedules in batch
-    for (const s of schedulesToUpdate) {
-      batch.update(doc(db, 'schedules', s.id), {
-        amountPaid: s.amountPaid,
-        remainingAmount: s.remainingAmount,
-        status: s.status
-      });
-    }
-
-    // 6. Update contributor totals
-    const contributorRef = doc(db, 'contributors', contributorId);
-    const contributor = contributors.find(c => c.id === contributorId);
-    if (contributor) {
-      const newTotalPaid = (contributor.totalPaid || 0) + paymentAmount;
-      const newRemainingBalance = (contributor.totalScheduled || 0) - newTotalPaid;
-      batch.update(contributorRef, {
-        totalPaid: newTotalPaid,
-        remainingBalance: newRemainingBalance
-      });
-    }
-
-    batch.commit().catch(console.error);
   };
   const addPayout = async (contributorId: string, amount: number, payoutDate: string, notes?: string): Promise<string> => {
     const docRef = doc(collection(db, 'payouts'));

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika, generateInstallmentDates } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
+import { generateInstallmentDates } from '../../utils/schedules';
 import { X, Calendar, AlignLeft, Target, Hash, Repeat } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -10,8 +11,14 @@ interface ScheduleModalProps {
 }
 
 export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributorId, onClose }) => {
-  const { currentEventId, events, contributors, addSchedule } = useJumuika();
+  const { currentEventId, events, contributors, addSchedule, schedules } = useJumuika();
   const [activeOption, setActiveOption] = useState<'one-time' | 'installment'>('one-time');
+
+  // Track existing unpaid schedules
+  const existingUnpaid = schedules.filter(s => s.contributorId === contributorId && s.amountPaid === 0);
+  const existingUnpaidAmount = existingUnpaid.reduce((sum, s) => sum + s.amount, 0);
+  const showReplaceOption = existingUnpaid.length > 0;
+  const [replaceExisting, setReplaceExisting] = useState(false);
 
   // Form Fields
   const [amount, setAmount] = useState<string>('');
@@ -42,6 +49,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
       setDueDate(new Date().toLocaleDateString('en-CA'));
       setStartDate(new Date().toLocaleDateString('en-CA'));
       setNotes('');
+      setReplaceExisting(false);
     }
   }, [isOpen, currentEvent?.targetAmount]);
 
@@ -96,6 +104,13 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
 
     setSaving(true);
     try {
+      let replaceAmt = 0;
+      let toDelete: string[] = [];
+      if (replaceExisting && existingUnpaid.length > 0) {
+        replaceAmt = existingUnpaidAmount;
+        toDelete = existingUnpaid.map(s => s.id);
+      }
+
       await addSchedule(
         contributorId,
         isOneTime ? 'one-time' : 'installment',
@@ -103,7 +118,9 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
         dateVal,
         countVal,
         frequency,
-        notes
+        notes,
+        replaceAmt,
+        toDelete
       );
       setAmount('');
       setTotalTarget('');
@@ -227,7 +244,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
                         id="installments"
                         type="number"
                         min="2"
-                        max="60"
+                        max="2000"
                         className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
                         placeholder="e.g. 4"
                         value={installments}
@@ -292,7 +309,25 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributo
               </>
             )}
 
-            <div className="flex flex-col gap-1.5">
+            {showReplaceOption && (
+              <div className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-xl mt-2">
+                <input
+                  type="checkbox"
+                  id="replaceExisting"
+                  checked={replaceExisting}
+                  onChange={(e) => setReplaceExisting(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-border/50 text-secondary focus:ring-secondary/50 bg-background"
+                />
+                <label htmlFor="replaceExisting" className="text-sm text-foreground cursor-pointer flex-1 select-none">
+                  <span className="font-semibold block mb-0.5 text-warning-foreground">Replace existing unpaid schedules?</span>
+                  <span className="text-xs text-muted block leading-snug">
+                    This will delete {existingUnpaid.length} unpaid schedule(s) totaling <strong>{existingUnpaidAmount.toLocaleString()}</strong> and replace them with this new plan.
+                  </span>
+                </label>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1.5 mt-2">
               <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="notes">Notes</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">

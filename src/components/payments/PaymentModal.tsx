@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { X, Info, ChevronDown, User, Target, CreditCard, PenTool, AlignLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 import { useTranslation } from 'react-i18next';
 
 interface PaymentModalProps {

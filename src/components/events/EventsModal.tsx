@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { X, FolderPlus, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface EventsModalProps {
   isOpen: boolean;

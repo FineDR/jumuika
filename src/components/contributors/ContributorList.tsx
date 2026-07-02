@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../context/JumuikaContext';
+import { useJumuika } from '../../context/JumuikaContext';
 import { Search, Plus, User, Phone, ChevronRight } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface ContributorListProps {
   onSelectContributor: (id: string) => void;

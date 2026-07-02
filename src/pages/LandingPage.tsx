@@ -4,13 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform, type Variants } from 'framer-motion';
-import { LogoIcon } from './ui/Logo';
+import { LogoIcon } from '../components/ui/Logo';
 import {
   ArrowRight, Calendar, Layers, Users,
   TrendingUp, Sparkles, CheckCircle, Star, Globe, Sun, Moon,
   Zap, BarChart2, Clock, Lock, ChevronRight, Play
 } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../components/ui/Button';
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
 const fadeUp: Variants = {
