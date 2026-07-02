@@ -10,6 +10,7 @@ import { ContributorList } from './components/contributors/ContributorList';
 import { ContributorProfile } from './components/contributors/ContributorProfile';
 import { ContributorRegisterModal } from './components/contributors/ContributorRegisterModal';
 import { ScheduleModal } from './components/schedules/ScheduleModal';
+import { BulkScheduleModal } from './components/schedules/BulkScheduleModal';
 import { PaymentModal } from './components/payments/PaymentModal';
 import { PayoutModal } from './components/payments/PayoutModal';
 import { CalendarView } from './components/calendar/CalendarView';
@@ -46,6 +47,7 @@ function AppContent() {
   // Modals visibility states
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isBulkScheduleOpen, setIsBulkScheduleOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
@@ -131,6 +133,7 @@ function AppContent() {
             onOpenScheduleModal={handleOpenScheduleModal}
             onOpenPaymentModal={(id) => handleOpenPaymentModal(id, null)}
             onOpenPayoutModal={(id) => handleOpenPayoutModal(id)}
+            onOpenBulkScheduleModal={() => setIsBulkScheduleOpen(true)}
           />
         );
       case 'calendar':
@@ -291,6 +294,10 @@ function AppContent() {
         isOpen={isScheduleOpen} 
         contributorId={selectedContributorId} 
         onClose={() => setIsScheduleOpen(false)} 
+      />
+      <BulkScheduleModal
+        isOpen={isBulkScheduleOpen}
+        onClose={() => setIsBulkScheduleOpen(false)}
       />
       <PaymentModal 
         isOpen={isPaymentOpen} 

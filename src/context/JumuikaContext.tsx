@@ -58,6 +58,14 @@ interface JumuikaContextType {
   ) => Promise<void>;
   addPayout: (contributorId: string, amount: number, payoutDate: string, notes?: string) => Promise<string>;
   deletePayout: (payoutId: string) => Promise<void>;
+  bulkScheduleAll: (
+    type: 'one-time' | 'installment',
+    amount: number,
+    dueDateOrStartDate: string,
+    frequency?: string,
+    installmentsCount?: number,
+    notes?: string
+  ) => Promise<number>;
   clearDemoData: () => Promise<void>;
 }
 
@@ -569,6 +577,98 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     deleteDoc(doc(db, 'payouts', payoutId)).catch(console.error);
   };
 
+  const bulkScheduleAll = async (
+    type: 'one-time' | 'installment',
+    amount: number,
+    dueDateOrStartDate: string,
+    frequency: string = 'Monthly',
+    installmentsCount: number = 1,
+    notes: string = ''
+  ): Promise<number> => {
+    // Only operate on contributors for the current event
+    const eventContributors = contributors.filter(c => c.eventId === currentEventId);
+    if (eventContributors.length === 0) return 0;
+
+    const BATCH_LIMIT = 400;
+    const allScheduleWrites: { ref: any; data: any }[] = [];
+
+    for (const contributor of eventContributors) {
+      if (type === 'one-time') {
+        const scheduleRef = doc(collection(db, 'schedules'));
+        const status = calculateStatus(dueDateOrStartDate, amount, 0);
+        allScheduleWrites.push({
+          ref: scheduleRef,
+          data: {
+            id: scheduleRef.id,
+            contributorId: contributor.id,
+            eventId: currentEventId,
+            amount,
+            dueDate: dueDateOrStartDate,
+            frequency: 'one-time',
+            installmentNumber: 1,
+            status,
+            amountPaid: 0,
+            remainingAmount: amount,
+            notes,
+            createdAt: serverTimestamp(),
+          },
+        });
+      } else {
+        const dates = generateInstallmentDates(dueDateOrStartDate, installmentsCount, frequency);
+        const baseAmount = Math.floor(amount / installmentsCount);
+        const remainder = amount - baseAmount * installmentsCount;
+        for (let i = 0; i < installmentsCount; i++) {
+          const scheduleRef = doc(collection(db, 'schedules'));
+          const installmentAmount = i === 0 ? baseAmount + remainder : baseAmount;
+          const status = calculateStatus(dates[i], installmentAmount, 0);
+          allScheduleWrites.push({
+            ref: scheduleRef,
+            data: {
+              id: scheduleRef.id,
+              contributorId: contributor.id,
+              eventId: currentEventId,
+              amount: installmentAmount,
+              dueDate: dates[i],
+              frequency,
+              installmentNumber: i + 1,
+              status,
+              amountPaid: 0,
+              remainingAmount: installmentAmount,
+              notes: notes ? `${notes} (Installment ${i + 1}/${installmentsCount})` : '',
+              createdAt: serverTimestamp(),
+            },
+          });
+        }
+      }
+    }
+
+    // Batch write all schedule documents
+    for (let i = 0; i < allScheduleWrites.length; i += BATCH_LIMIT) {
+      const chunk = allScheduleWrites.slice(i, i + BATCH_LIMIT);
+      const batch = writeBatch(db);
+      chunk.forEach(item => batch.set(item.ref, item.data));
+      await batch.commit();
+    }
+
+    // Update each contributor's totals
+    const totalAdded = type === 'one-time' ? amount : amount;
+    for (const contributor of eventContributors) {
+      await runTransaction(db, async (transaction) => {
+        const contributorRef = doc(db, 'contributors', contributor.id);
+        const snap = await transaction.get(contributorRef);
+        if (!snap.exists()) return;
+        const data = snap.data();
+        const newTotalScheduled = (data.totalScheduled || 0) + totalAdded;
+        transaction.update(contributorRef, {
+          totalScheduled: newTotalScheduled,
+          remainingBalance: newTotalScheduled - (data.totalPaid || 0),
+        });
+      });
+    }
+
+    return eventContributors.length;
+  };
+
   const clearDemoData = async (): Promise<void> => {
     const batch = writeBatch(db);
     batch.delete(doc(db, 'events', 'demo-event'));
@@ -604,6 +704,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       recordPayment,
       addPayout,
       deletePayout,
+      bulkScheduleAll,
       clearDemoData
     }}>
       {children}

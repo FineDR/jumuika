@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useJumuika } from '../../context/JumuikaContext';
-import { Search, Plus, User, Phone, ChevronRight } from 'lucide-react';
+import { Search, Plus, User, Phone, ChevronRight, CalendarClock } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface ContributorListProps {
@@ -9,6 +9,7 @@ interface ContributorListProps {
   onOpenScheduleModal: (contributorId: string) => void;
   onOpenPaymentModal: (contributorId: string) => void;
   onOpenPayoutModal: (contributorId: string) => void;
+  onOpenBulkScheduleModal: () => void;
 }
 
 export const ContributorList: React.FC<ContributorListProps> = ({
@@ -16,7 +17,8 @@ export const ContributorList: React.FC<ContributorListProps> = ({
   onOpenRegisterModal,
   onOpenScheduleModal,
   onOpenPaymentModal,
-  onOpenPayoutModal
+  onOpenPayoutModal,
+  onOpenBulkScheduleModal
 }) => {
   const { contributors } = useJumuika();
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,14 +52,27 @@ export const ContributorList: React.FC<ContributorListProps> = ({
           <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground">Contributors</h2>
           <p className="text-xs sm:text-sm text-muted mt-1">Manage members, schedules, and billing status</p>
         </div>
-        <Button
-          onClick={onOpenRegisterModal}
-          size="md"
-          className="gap-2 shrink-0 w-full sm:w-auto"
-        >
-          <Plus size={16} />
-          <span>Register</span>
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button
+            onClick={onOpenBulkScheduleModal}
+            variant="ghost"
+            size="md"
+            className="gap-2 shrink-0 flex-1 sm:flex-none border border-border hover:border-secondary/50"
+            title="Schedule all members at once"
+          >
+            <CalendarClock size={16} />
+            <span className="hidden sm:inline">Schedule All</span>
+            <span className="sm:hidden">Bulk</span>
+          </Button>
+          <Button
+            onClick={onOpenRegisterModal}
+            size="md"
+            className="gap-2 shrink-0 flex-1 sm:flex-none"
+          >
+            <Plus size={16} />
+            <span>Register</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
