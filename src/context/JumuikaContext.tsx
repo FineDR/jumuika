@@ -33,7 +33,7 @@ interface JumuikaContextType {
   loading: boolean;
   
   // Actions
-  addEvent: (name: string, targetAmount?: number) => Promise<string>;
+  addEvent: (name: string, targetAmount?: number, eventType?: 'harambee' | 'merry-go-round' | 'table-banking') => Promise<string>;
   addContributor: (fullName: string, phone?: string, notes?: string, expectedAmount?: number) => Promise<string>;
   addSchedule: (
     contributorId: string, 
@@ -175,11 +175,12 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [currentEventId]);
 
   // Actions
-  const addEvent = async (name: string, targetAmount?: number): Promise<string> => {
+  const addEvent = async (name: string, targetAmount?: number, eventType?: 'harambee' | 'merry-go-round' | 'table-banking'): Promise<string> => {
     const docRef = doc(collection(db, 'events'));
     const eventData: any = {
       id: docRef.id,
       name,
+      eventType: eventType || 'harambee',
       createdAt: serverTimestamp()
     };
     if (targetAmount !== undefined && targetAmount > 0) {

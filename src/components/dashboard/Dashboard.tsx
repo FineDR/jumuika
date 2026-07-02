@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useJumuika } from '../../context/JumuikaContext';
 import { 
   Calendar, AlertCircle, Clock, CheckCircle2, User, 
-  Wallet, TrendingUp, ArrowRight, Activity
+  Wallet, TrendingUp, ArrowRight, Activity, HandHeart, RefreshCw, Landmark
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -19,9 +19,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenPaymentModal,
   onOpenRegisterModal
 }) => {
-  const { schedules, contributors, payments, payouts } = useJumuika();
+  const { schedules, contributors, payments, payouts, events, currentEventId } = useJumuika();
   const { t } = useTranslation();
 
+  const currentEvent = events.find(e => e.id === currentEventId);
   const todayStr = new Date().toLocaleDateString('en-CA');
 
   // Calculations
@@ -126,10 +127,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
     >
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-            {t('dashboard')}
-          </h2>
-          <p className="text-sm text-muted mt-1">Overview of your contributions and schedules</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              {t('dashboard')}
+            </h2>
+            {currentEvent && (
+              <span className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                currentEvent.eventType === 'merry-go-round'
+                  ? 'bg-violet-500/10 text-violet-400 border-violet-500/20'
+                  : currentEvent.eventType === 'table-banking'
+                  ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              }`}>
+                {currentEvent.eventType === 'merry-go-round' ? <RefreshCw size={11} /> : currentEvent.eventType === 'table-banking' ? <Landmark size={11} /> : <HandHeart size={11} />}
+                {currentEvent.eventType === 'merry-go-round' ? 'Merry-Go-Round' : currentEvent.eventType === 'table-banking' ? 'Table Banking' : 'Harambee'}
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-muted mt-1">
+            {currentEvent ? currentEvent.name : 'Overview of your contributions and schedules'}
+          </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
@@ -148,6 +165,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </button>
         </div>
       </motion.div>
+
+      {/* Smart Contextual Alerts */}
+      {(overdueSchedules.length > 0 || (currentEvent?.eventType === 'merry-go-round' && currentPoolBalance > 0)) && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-2">
+          {overdueSchedules.length > 0 && (
+            <div className="flex items-center gap-3 px-4 py-3 bg-danger/8 border border-danger/20 rounded-xl">
+              <AlertCircle size={16} className="text-danger shrink-0" />
+              <p className="text-sm font-semibold text-danger flex-1">
+                {overdueSchedules.length} installment{overdueSchedules.length > 1 ? 's are' : ' is'} overdue —{' '}
+                <span className="font-bold">{overdueSchedules.reduce((s, x) => s + x.remainingAmount, 0).toLocaleString()} TZS</span> uncollected
+              </p>
+            </div>
+          )}
+          {currentEvent?.eventType === 'merry-go-round' && currentPoolBalance > 0 && (
+            <div className="flex items-center gap-3 px-4 py-3 bg-violet-500/8 border border-violet-500/20 rounded-xl">
+              <RefreshCw size={16} className="text-violet-400 shrink-0" />
+              <p className="text-sm font-semibold text-violet-400 flex-1">
+                Pool ready for payout —{' '}
+                <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span> available to disburse to the next member
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">

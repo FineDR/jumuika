@@ -69,12 +69,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="mt-2 relative">
         <span className="text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">Active Event</span>
-        <button 
+        <button
           className="w-full p-3 bg-foreground/5 hover:bg-secondary/10 border border-border hover:border-secondary rounded-md text-foreground font-semibold text-sm flex items-center justify-between cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
-          <span className="truncate pr-2">{currentEvent ? currentEvent.name : 'Select Event'}</span>
-          <ChevronDown size={16} className={`transition-transform duration-normal ${dropdownOpen ? 'rotate-180' : ''}`} />
+          <span className="flex flex-col items-start gap-0.5 min-w-0 pr-2">
+            <span className="truncate text-sm font-semibold">{currentEvent ? currentEvent.name : 'Select Event'}</span>
+            {currentEvent && (
+              <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full ${
+                currentEvent.eventType === 'merry-go-round' ? 'bg-violet-500/15 text-violet-400'
+                : currentEvent.eventType === 'table-banking' ? 'bg-sky-500/15 text-sky-400'
+                : 'bg-emerald-500/15 text-emerald-400'
+              }`}>
+                {currentEvent.eventType === 'merry-go-round' ? 'Merry-Go-Round'
+                  : currentEvent.eventType === 'table-banking' ? 'Table Banking'
+                  : 'Harambee'}
+              </span>
+            )}
+          </span>
+          <ChevronDown size={16} className={`transition-transform duration-normal shrink-0 ${dropdownOpen ? 'rotate-180' : ''}`} />
         </button>
         
         {dropdownOpen && (
@@ -99,11 +112,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       setDropdownOpen(false);
                       setEventSearch('');
                     }}
-                    className={`w-full p-2.5 text-left text-xs cursor-pointer block transition-colors duration-fast ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
+                    className={`w-full p-2.5 text-left text-xs cursor-pointer block transition-colors duration-fast rounded-lg ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
                   >
-                    <span className="truncate block flex items-center justify-between font-sans">
-                      {e.name}
-                      {e.id === currentEventId && <span className="text-[10px] font-bold text-secondary">✓</span>}
+                    <span className="flex items-center justify-between gap-1 font-sans">
+                      <span className="truncate font-semibold text-[11px]">{e.name}</span>
+                      <span className={`text-[8px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                        e.eventType === 'merry-go-round' ? 'bg-violet-500/15 text-violet-400'
+                        : e.eventType === 'table-banking' ? 'bg-sky-500/15 text-sky-400'
+                        : 'bg-emerald-500/15 text-emerald-400'
+                      }`}>
+                        {e.eventType === 'merry-go-round' ? 'MGR' : e.eventType === 'table-banking' ? 'TB' : 'H'}
+                      </span>
                     </span>
                   </button>
                 ))

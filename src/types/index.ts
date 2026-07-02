@@ -40,6 +40,7 @@ export interface Payment {
 export interface Event {
   id: string;
   name: string;
+  eventType?: 'harambee' | 'merry-go-round' | 'table-banking';
   targetAmount?: number;
   createdAt: any;
 }

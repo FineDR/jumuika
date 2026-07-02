@@ -57,6 +57,7 @@ function AppContent() {
   const [payTargetScheduleId, setPayTargetScheduleId] = useState<string | null>(null);
   const [paymentModalContributorId, setPaymentModalContributorId] = useState<string | null>(null);
   const [payoutModalContributorId, setPayoutModalContributorId] = useState<string | null>(null);
+  const [pendingSchedulePromptId, setPendingSchedulePromptId] = useState<string | null>(null);
 
   const handleOpenScheduleModal = (contribId: string) => {
     setSelectedContributorId(contribId);
@@ -81,6 +82,14 @@ function AppContent() {
   const handleRegisterSuccess = (newContributorId: string) => {
     setSelectedContributorId(newContributorId);
     setActiveTab('contributors');
+    setPendingSchedulePromptId(newContributorId);
+  };
+
+  const handlePromptYes = () => {
+    if (pendingSchedulePromptId) {
+      handleOpenScheduleModal(pendingSchedulePromptId);
+    }
+    setPendingSchedulePromptId(null);
   };
 
   const handleSidebarTabChange = (tab: string) => {
@@ -298,6 +307,34 @@ function AppContent() {
         isOpen={isEventOpen} 
         onClose={() => setIsEventOpen(false)} 
       />
+
+      {/* Post-registration "Set up schedule?" prompt */}
+      {pendingSchedulePromptId && (
+        <div className="fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md animate-scale-in">
+          <div className="flex items-center gap-3 px-4 py-3.5 bg-surface border border-secondary/40 rounded-2xl shadow-2xl shadow-secondary/10 backdrop-blur-md">
+            <div className="w-8 h-8 rounded-full bg-secondary/15 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </div>
+            <p className="text-sm font-semibold text-foreground flex-1 leading-snug">
+              Member added! Set up their contribution schedule now?
+            </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setPendingSchedulePromptId(null)}
+                className="text-xs font-semibold text-muted hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all"
+              >
+                Skip
+              </button>
+              <button
+                onClick={handlePromptYes}
+                className="text-xs font-bold text-secondary-foreground bg-secondary hover:bg-secondary/90 px-3 py-1.5 rounded-lg transition-all"
+              >
+                Yes, Set Up →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
