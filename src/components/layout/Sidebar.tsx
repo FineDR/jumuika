@@ -3,7 +3,7 @@ import { useJumuika } from '../../context/JumuikaContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Receipt, Plus, ChevronDown, LogOut, Sun, Moon, Globe, Settings as SettingsIcon, RefreshCw, Landmark } from 'lucide-react';
 import { LogoIcon } from '../ui/Logo';
 
 interface SidebarProps {
@@ -39,6 +39,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ...(currentEvent?.eventType === 'merry-go-round'
       ? [{ id: 'rotation', label: 'Rotation', icon: RefreshCw }]
       : []),
+    ...(currentEvent?.eventType === 'table-banking'
+      ? [{ id: 'loans', label: 'Loan Book', icon: Landmark }]
+      : []),
     { id: 'calendar', label: t('calendar', 'Calendar View'), icon: Calendar },
     { id: 'payments', label: t('payments', 'Payments Log'), icon: Receipt },
     { id: 'settings', label: t('settings', 'Settings'), icon: SettingsIcon },
@@ -61,25 +64,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Content */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-surface border-r border-border p-6 sm:p-8 flex flex-col gap-8 shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shadow-none lg:shrink-0 lg:h-screen lg:top-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[280px] xs:w-[280px] bg-surface border-r border-border p-4 xs:p-6 sm:p-8 flex flex-col gap-4 xs:gap-6 sm:gap-8 shadow-2xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 lg:shadow-none lg:shrink-0 lg:h-screen lg:top-0 overflow-y-auto ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <LogoIcon className="w-8 h-8" />
-        <h1 className="font-heading text-2xl font-extrabold text-secondary uppercase tracking-wider drop-shadow-sm">
+        <h1 className="font-heading text-xl xs:text-2xl font-extrabold text-secondary uppercase tracking-wider drop-shadow-sm">
           Jumuika
         </h1>
       </div>
 
-      <div className="mt-2 relative">
-        <span className="text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">Active Event</span>
+      <div className="mt-2 relative shrink-0">
+        <span className="text-[10px] xs:text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">Active Event</span>
         <button
-          className="w-full p-3 bg-foreground/5 hover:bg-secondary/10 border border-border hover:border-secondary rounded-md text-foreground font-semibold text-sm flex items-center justify-between cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
+          className="w-full p-2.5 xs:p-3 bg-foreground/5 hover:bg-secondary/10 border border-border hover:border-secondary rounded-md text-foreground font-semibold text-xs xs:text-sm flex items-center justify-between cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
           <span className="flex flex-col items-start gap-0.5 min-w-0 pr-2">
-            <span className="truncate text-sm font-semibold">{currentEvent ? currentEvent.name : 'Select Event'}</span>
+            <span className="truncate w-full block text-left text-xs xs:text-sm font-semibold">{currentEvent ? currentEvent.name : 'Select Event'}</span>
             {currentEvent && (
-              <span className={`text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full ${
+              <span className={`text-[8px] xs:text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full ${
                 currentEvent.eventType === 'merry-go-round' ? 'bg-violet-500/15 text-violet-400'
                 : currentEvent.eventType === 'table-banking' ? 'bg-sky-500/15 text-sky-400'
                 : 'bg-emerald-500/15 text-emerald-400'
@@ -94,18 +97,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
         
         {dropdownOpen && (
-          <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-md mt-1 z-30 shadow-lg p-2.5 flex flex-col gap-2 max-h-60 overflow-y-auto overflow-x-hidden animate-drop-in">
+          <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-md mt-1 z-30 shadow-lg p-2 flex flex-col gap-2 max-h-60 overflow-y-auto overflow-x-hidden animate-drop-in">
             <input
               type="text"
               placeholder="Search event..."
-              className="w-full p-2 bg-background border border-border rounded text-xs text-foreground focus:outline-none focus:border-secondary"
+              className="w-full p-2 bg-background border border-border rounded text-[11px] xs:text-xs text-foreground focus:outline-none focus:border-secondary"
               value={eventSearch}
               onChange={(e) => setEventSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
             />
             <div className="flex flex-col max-h-40 overflow-y-auto">
               {filteredEvents.length === 0 ? (
-                <div className="text-xs text-muted p-2">No events found</div>
+                <div className="text-[11px] xs:text-xs text-muted p-2">No events found</div>
               ) : (
                 filteredEvents.map((e) => (
                   <button
@@ -115,10 +118,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       setDropdownOpen(false);
                       setEventSearch('');
                     }}
-                    className={`w-full p-2.5 text-left text-xs cursor-pointer block transition-colors duration-fast rounded-lg ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
+                    className={`w-full p-2 text-left text-[11px] xs:text-xs cursor-pointer flex items-center min-w-0 transition-colors duration-fast rounded-lg ${e.id === currentEventId ? 'bg-secondary/10 text-secondary font-semibold' : 'text-foreground hover:bg-foreground/5'}`}
                   >
-                    <span className="flex items-center justify-between gap-1 font-sans">
-                      <span className="truncate font-semibold text-[11px]">{e.name}</span>
+                    <span className="flex items-center justify-between gap-1.5 font-sans w-full min-w-0">
+                      <span className="truncate font-semibold text-[10px] xs:text-[11px] pr-1.5 w-full block text-left">{e.name}</span>
                       <span className={`text-[8px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
                         e.eventType === 'merry-go-round' ? 'bg-violet-500/15 text-violet-400'
                         : e.eventType === 'table-banking' ? 'bg-sky-500/15 text-sky-400'
@@ -137,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 setDropdownOpen(false);
                 setEventSearch('');
               }}
-              className="w-full p-2.5 bg-secondary/5 hover:bg-secondary/10 border-t border-border text-left text-secondary text-xs font-semibold cursor-pointer flex items-center gap-2 transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              className="w-full p-2 bg-secondary/5 hover:bg-secondary/10 border-t border-border text-left text-secondary text-[11px] xs:text-xs font-semibold cursor-pointer flex items-center gap-2 transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Plus size={14} />
               Create New Event
@@ -148,14 +151,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <button
         onClick={() => onOpenPaymentModal(null)}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-surface hover:bg-secondary/95 hover:-translate-y-0.5 border border-transparent rounded-lg font-bold text-sm tracking-wide shadow-[0_4px_10px_rgba(20,184,166,0.2)] hover:shadow-[0_4px_15px_rgba(20,184,166,0.3)] transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 xs:px-4 xs:py-3 bg-secondary text-surface hover:bg-secondary/95 hover:-translate-y-0.5 border border-transparent rounded-lg font-bold text-xs xs:text-sm tracking-wide shadow-[0_4px_10px_rgba(20,184,166,0.2)] hover:shadow-[0_4px_15px_rgba(20,184,166,0.3)] transition-all duration-fast shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary active:scale-[0.98]"
       >
         <Plus size={16} strokeWidth={2.5} />
         <span>{t('quick_record')}</span>
       </button>
 
-      <nav className="flex-grow mt-4">
-        <ul className="flex flex-col gap-2">
+      <nav className="flex-grow mt-2 xs:mt-4">
+        <ul className="flex flex-col gap-1.5 xs:gap-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -163,10 +166,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <li key={item.id}>
                 <button 
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-4 px-5 py-3 rounded-md font-medium text-[0.95rem] transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98] ${isActive ? 'bg-secondary text-surface font-semibold shadow-[0_4px_15px_rgba(20,184,166,0.3)]' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
+                  className={`w-full flex items-center gap-3 xs:gap-4 px-3 py-2 xs:px-4 xs:py-2.5 sm:px-5 sm:py-3 rounded-md font-medium text-xs xs:text-sm lg:text-[0.95rem] transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98] ${isActive ? 'bg-secondary text-surface font-semibold shadow-[0_4px_15px_rgba(20,184,166,0.3)]' : 'text-muted hover:text-foreground hover:bg-foreground/5'}`}
                 >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
+                  <Icon size={18} className="shrink-0" />
+                  <span className="truncate">{item.label}</span>
                 </button>
               </li>
             );
@@ -175,35 +178,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Preferences Panel */}
-      <div className="flex flex-col gap-2 mt-auto mb-4">
+      <div className="flex flex-col gap-2 mt-auto mb-2 xs:mb-4 shrink-0">
         <div className="flex gap-2">
           <button
             onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'sw' : 'en')}
-            className="flex-1 flex items-center justify-center gap-2 p-2.5 bg-surface border border-border rounded-md text-foreground cursor-pointer transition-colors duration-fast hover:bg-foreground/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center gap-2 p-2 xs:p-2.5 bg-surface border border-border rounded-md text-foreground cursor-pointer transition-colors duration-fast hover:bg-foreground/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
             title="Toggle Language"
           >
-            <Globe size={16} />
-            <span className="text-xs font-semibold">{i18n.language === 'en' ? 'SW' : 'EN'}</span>
+            <Globe size={16} className="shrink-0" />
+            <span className="text-[10px] xs:text-xs font-semibold">{i18n.language === 'en' ? 'SW' : 'EN'}</span>
           </button>
           <button
             onClick={toggleTheme}
-            className="flex-1 flex items-center justify-center p-2.5 bg-surface border border-border rounded-md text-foreground cursor-pointer transition-colors duration-fast hover:bg-foreground/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
+            className="flex-1 flex items-center justify-center p-2 xs:p-2.5 bg-surface border border-border rounded-md text-foreground cursor-pointer transition-colors duration-fast hover:bg-foreground/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
             title="Toggle Theme"
           >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'dark' ? <Sun size={18} className="shrink-0" /> : <Moon size={18} className="shrink-0" />}
           </button>
         </div>
       </div>
 
       {/* User Session & Logout Panel */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5 xs:gap-3 shrink-0">
         {user && (
-          <div className="px-4 py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-secondary/35 rounded-md border border-border text-muted flex flex-col gap-1 transition-all duration-fast group">
-            <span className="text-[10px] uppercase tracking-wider font-semibold group-hover:text-secondary transition-colors">Active Organizer</span>
-            <span className="font-semibold text-foreground truncate text-sm">
+          <div className="px-3 py-2.5 xs:px-4 xs:py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-secondary/35 rounded-md border border-border text-muted flex flex-col gap-1 transition-all duration-fast group">
+            <span className="text-[8px] xs:text-[10px] uppercase tracking-wider font-semibold group-hover:text-secondary transition-colors">Active Organizer</span>
+            <span className="font-semibold text-foreground truncate text-xs xs:text-sm">
               {user.displayName || user.email}
             </span>
-            <span className="text-[9px] text-muted opacity-80 group-hover:opacity-100 transition-opacity">
+            <span className="text-[8px] xs:text-[9px] text-muted opacity-80 group-hover:opacity-100 transition-opacity">
               {contributors.length} Members • {events.length} Events
             </span>
           </div>
@@ -212,16 +215,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={async () => {
             await logout();
           }}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-danger/5 hover:bg-danger/10 border border-danger/20 hover:border-danger/30 rounded-md text-danger font-semibold text-sm cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-danger active:scale-[0.98]"
+          className="w-full flex items-center gap-3 px-3 py-2.5 xs:px-4 xs:py-3 bg-danger/5 hover:bg-danger/10 border border-danger/20 hover:border-danger/30 rounded-md text-danger font-semibold text-xs xs:text-sm cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-danger active:scale-[0.98]"
         >
-          <LogOut size={16} />
+          <LogOut size={16} className="shrink-0" />
           <span>Log Out</span>
         </button>
       </div>
 
-      <div className="text-xs text-muted text-center mt-2">
+      <div className="text-[10px] xs:text-xs text-muted text-center mt-1 xs:mt-2 shrink-0">
         <p className="font-medium">© 2026 Jumuika App</p>
-        <p className="text-[10px] mt-1 opacity-80">Scheduled Contributions</p>
+        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Scheduled Contributions</p>
       </div>
     </aside>
     </>

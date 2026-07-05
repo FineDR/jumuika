@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useJumuika } from '../../context/JumuikaContext';
 import { Search, Plus, User, Phone, ChevronRight, CalendarClock } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -20,6 +21,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
   onOpenPayoutModal,
   onOpenBulkScheduleModal
 }) => {
+  const { t } = useTranslation();
   const { contributors } = useJumuika();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'balance-desc' | 'paid-desc' | 'created-desc'>('created-desc');
@@ -47,57 +49,56 @@ export const ContributorList: React.FC<ContributorListProps> = ({
   return (
     <div className="flex flex-col gap-6 sm:gap-8">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground">Contributors</h2>
-          <p className="text-xs sm:text-sm text-muted mt-1">Manage members, schedules, and billing status</p>
+          <h2 className="font-heading text-2xl xs:text-3xl lg:text-4xl font-extrabold text-foreground">{t('contributors_page.title')}</h2>
+          <p className="text-xs sm:text-sm text-muted mt-1">{t('contributors_page.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col xs:flex-row items-center gap-2.5 w-full sm:w-auto">
           <Button
             onClick={onOpenBulkScheduleModal}
             variant="ghost"
             size="md"
-            className="gap-2 shrink-0 flex-1 sm:flex-none border border-border hover:border-secondary/50"
+            className="gap-2 w-full xs:w-auto border border-border hover:border-secondary/50 justify-center cursor-pointer"
             title="Schedule all members at once"
           >
             <CalendarClock size={16} />
-            <span className="hidden sm:inline">Schedule All</span>
-            <span className="sm:hidden">Bulk</span>
+            <span>{t('contributors_page.schedule_all')}</span>
           </Button>
           <Button
             onClick={onOpenRegisterModal}
             size="md"
-            className="gap-2 shrink-0 flex-1 sm:flex-none"
+            className="gap-2 w-full xs:w-auto justify-center cursor-pointer"
           >
             <Plus size={16} />
-            <span>Register</span>
+            <span>{t('contributors_page.register')}</span>
           </Button>
         </div>
       </div>
 
       {/* Filters */}
       <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3 mb-5 sm:mb-6">
+        <div className="flex flex-col xs:flex-row gap-3 mb-5 sm:mb-6">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4 pointer-events-none" />
             <input
               type="text"
               className="w-full py-2.5 pl-9 pr-4 bg-foreground/5 border border-border rounded-lg text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-              placeholder="Search by name or phone..."
+              placeholder={t('contributors_page.search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <select
-            className="w-full sm:w-[190px] p-2.5 bg-foreground/5 border border-border rounded-lg text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shrink-0"
+            className="w-full xs:w-[190px] p-2.5 bg-foreground/5 border border-border rounded-lg text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shrink-0"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
           >
-            <option value="created-desc">Date Registered</option>
-            <option value="name-asc">Name (A–Z)</option>
-            <option value="name-desc">Name (Z–A)</option>
-            <option value="balance-desc">Balance (High–Low)</option>
-            <option value="paid-desc">Total Paid (High–Low)</option>
+            <option value="created-desc">{t('contributors_page.sort.date')}</option>
+            <option value="name-asc">{t('contributors_page.sort.name_asc')}</option>
+            <option value="name-desc">{t('contributors_page.sort.name_desc')}</option>
+            <option value="balance-desc">{t('contributors_page.sort.balance')}</option>
+            <option value="paid-desc">{t('contributors_page.sort.paid')}</option>
           </select>
         </div>
 
@@ -145,18 +146,18 @@ export const ContributorList: React.FC<ContributorListProps> = ({
                     </div>
 
                     {/* Stats row */}
-                    <div className="grid grid-cols-3 gap-2 text-center py-2 border-y border-border/50">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted font-semibold">Scheduled</p>
-                        <p className="text-xs font-bold text-foreground">{c.totalScheduled.toLocaleString()}</p>
+                    <div className="grid grid-cols-3 gap-1.5 text-center py-2 border-y border-border/50">
+                      <div className="min-w-0">
+                        <p className="text-[9px] xs:text-[10px] uppercase tracking-wider text-muted font-semibold truncate">{t('contributors_page.scheduled')}</p>
+                        <p className="text-[11px] xs:text-xs font-bold text-foreground truncate">{c.totalScheduled.toLocaleString()}</p>
                       </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted font-semibold">Paid</p>
-                        <p className="text-xs font-bold text-success">{c.totalPaid.toLocaleString()}</p>
+                      <div className="min-w-0">
+                        <p className="text-[9px] xs:text-[10px] uppercase tracking-wider text-muted font-semibold truncate">{t('contributors_page.paid')}</p>
+                        <p className="text-[11px] xs:text-xs font-bold text-success truncate">{c.totalPaid.toLocaleString()}</p>
                       </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted font-semibold">Balance</p>
-                        <p className={`text-xs font-bold ${(c.remainingBalance || 0) > 0 ? 'text-danger' : 'text-muted'}`}>
+                      <div className="min-w-0">
+                        <p className="text-[9px] xs:text-[10px] uppercase tracking-wider text-muted font-semibold truncate">{t('contributors_page.balance')}</p>
+                        <p className={`text-[11px] xs:text-xs font-bold truncate ${(c.remainingBalance || 0) > 0 ? 'text-danger' : 'text-muted'}`}>
                           {(c.remainingBalance || 0).toLocaleString()}
                         </p>
                       </div>
@@ -165,7 +166,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
                     {/* Progress */}
                     <div className="flex flex-col gap-1">
                       <div className="flex justify-between text-xs font-semibold text-foreground">
-                        <span>Progress</span>
+                        <span>{t('contributors_page.progress')}</span>
                         <span>{percentPaid}%</span>
                       </div>
                       <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
@@ -177,31 +178,33 @@ export const ContributorList: React.FC<ContributorListProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        className="flex-1"
-                        onClick={() => onOpenScheduleModal(c.id)}
-                      >
-                        Schedule
-                      </Button>
+                    <div className="flex flex-col gap-2">
                       <Button
                         variant="primary"
                         size="xs"
-                        className="flex-1"
+                        className="w-full justify-center py-2 cursor-pointer"
                         onClick={() => onOpenPaymentModal(c.id)}
                       >
                         Pay
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        className="flex-1 border border-border/50 text-foreground"
-                        onClick={() => onOpenPayoutModal(c.id)}
-                      >
-                        Payout
-                      </Button>
+                      <div className="flex gap-2 w-full">
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          className="flex-1 justify-center py-2 cursor-pointer"
+                          onClick={() => onOpenScheduleModal(c.id)}
+                        >
+                          Schedule
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          className="flex-1 justify-center py-2 border border-border/50 text-foreground cursor-pointer"
+                          onClick={() => onOpenPayoutModal(c.id)}
+                        >
+                          Payout
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -213,12 +216,12 @@ export const ContributorList: React.FC<ContributorListProps> = ({
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border">Contributor</th>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">Scheduled</th>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">Paid</th>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">Balance</th>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border">Progress</th>
-                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">Actions</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border">{t('contributors_page.name')}</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">{t('contributors_page.scheduled')}</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">{t('contributors_page.paid')}</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">{t('contributors_page.balance')}</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border">{t('contributors_page.progress')}</th>
+                    <th className="px-4 py-3 text-xs uppercase text-muted tracking-widest font-bold border-b border-border text-right">{t('contributors_page.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>

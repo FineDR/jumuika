@@ -10,8 +10,11 @@ interface ContributorRegisterModalProps {
   onSuccess: (id: string) => void;
 }
 
+import { useTranslation } from 'react-i18next';
+
 export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { addContributor, events, currentEventId } = useJumuika();
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
@@ -34,7 +37,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      setError('Full Name is required');
+      setError(t('profile.name_required'));
       return;
     }
     setError('');
@@ -46,11 +49,11 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
       setPhone('');
       setNotes('');
       setExpectedAmount('');
-      toast.success('Contributor registered successfully!');
+      toast.success(t('profile.success_register'));
       onSuccess(newId);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to register contributor');
+      setError(err.message || t('profile.failed_register'));
     } finally {
       setSaving(false);
     }
@@ -60,7 +63,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md animate-fade-in">
       <div className="w-full max-w-[400px] bg-surface rounded-2xl shadow-2xl border border-border/50 animate-scale-in flex flex-col max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/50 backdrop-blur-sm">
-          <h3 className="font-heading text-lg font-bold text-foreground">Register Contributor</h3>
+          <h3 className="font-heading text-lg font-bold text-foreground">{t('profile.register_contributor')}</h3>
           <button 
             className="p-1.5 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all focus:outline-none" 
             onClick={onClose}
@@ -78,7 +81,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="fullName">Full Name <span className="text-danger">*</span></label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="fullName">{t('profile.full_name')} <span className="text-danger">*</span></label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <User size={16} />
@@ -97,7 +100,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="phone">Phone Number</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="phone">{t('profile.phone_number')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <Phone size={16} />
@@ -115,7 +118,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="expectedAmount">Expected Contribution (Optional)</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="expectedAmount">{t('profile.expected_contribution')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <Target size={16} />
@@ -133,7 +136,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="notes">Notes</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="notes">{t('profile.notes')}</label>
               <div className="relative">
                 <div className="absolute top-3 left-3 pointer-events-none text-muted">
                   <AlignLeft size={16} />
@@ -157,7 +160,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
                 disabled={saving}
                 className="px-4 py-2 text-sm"
               >
-                Cancel
+                {t('profile.cancel')}
               </Button>
               <Button 
                 variant="primary"
@@ -165,7 +168,7 @@ export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> =
                 isLoading={saving}
                 className="px-5 py-2 text-sm"
               >
-                {saving ? 'Registering...' : 'Register Member'}
+                {saving ? t('profile.registering') : t('profile.register_member')}
               </Button>
             </div>
           </form>

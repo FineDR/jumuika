@@ -55,3 +55,20 @@ export interface Payout {
   notes?: string;
   createdAt?: any;
 }
+
+export interface Loan {
+  id: string;
+  eventId: string;
+  contributorId: string;
+  principalAmount: number;       // original amount borrowed
+  interestRate: number;          // % per month (flat rate)
+  interestAmount: number;        // pre-calculated total interest
+  totalRepayable: number;        // principal + interestAmount
+  amountRepaid: number;
+  remainingBalance: number;
+  disbursementDate: string;      // YYYY-MM-DD
+  dueDate: string;               // YYYY-MM-DD
+  status: 'Active' | 'Completed' | 'Defaulted';
+  notes?: string;
+  createdAt: any;
+}

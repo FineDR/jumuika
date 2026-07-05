@@ -43,5 +43,19 @@ service cloud.firestore {
         && request.resource.data.amount > 0;
       allow delete: if isSignedIn();
     }
+
+    match /loans/{loanId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.principalAmount > 0
+        && request.resource.data.interestRate >= 0
+        && request.resource.data.totalRepayable > 0
+        && request.resource.data.status in ['Active', 'Completed', 'Defaulted'];
+      allow update: if isSignedIn()
+        && request.resource.data.amountRepaid >= 0
+        && request.resource.data.remainingBalance >= 0
+        && request.resource.data.status in ['Active', 'Completed', 'Defaulted'];
+      allow delete: if isSignedIn();
+    }
   }
 }

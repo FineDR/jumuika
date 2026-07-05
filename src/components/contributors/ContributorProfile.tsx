@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useJumuika, type Schedule } from '../../context/JumuikaContext';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, Plus, DollarSign, Edit2, Trash2, 
   Clock, AlertCircle, X, Phone, FileText, Wallet
@@ -22,6 +23,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
   onOpenPayoutModal
 }) => {
   const { contributors, schedules, payouts, deleteSchedule, editSchedule } = useJumuika();
+  const { t } = useTranslation();
   
   // Edit schedule inline modal state
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
@@ -42,8 +44,8 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
         </Button>
         <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-border rounded-xl">
           <AlertCircle size={48} className="text-danger mb-4" />
-          <h3 className="font-heading text-xl font-bold text-foreground mb-2">Contributor Not Found</h3>
-          <p className="text-muted text-sm max-w-md">The contributor profile you are looking for does not exist or has been removed.</p>
+          <h3 className="font-heading text-xl font-bold text-foreground mb-2">{t('profile.not_found')}</h3>
+          <p className="text-muted text-sm max-w-md">{t('profile.not_found_desc')}</p>
         </div>
       </div>
     );
@@ -84,11 +86,11 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
   // Handle schedule deletion
   const handleDeleteSchedule = async (scheduleId: string) => {
-    if (window.confirm('Are you sure you want to delete this scheduled installment? This will update the contributor total scheduled amount.')) {
+    if (window.confirm(t('profile.confirm_delete_schedule'))) {
       try {
         await deleteSchedule(scheduleId);
       } catch (err) {
-        alert('Failed to delete schedule installment');
+        alert(t('profile.failed_delete_schedule'));
       }
     }
   };
@@ -106,7 +108,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
     if (!editingSchedule) return;
 
     if (editAmount <= 0) {
-      alert('Amount must be greater than 0');
+      alert(t('profile.amount_greater_zero'));
       return;
     }
 
@@ -114,7 +116,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
       await editSchedule(editingSchedule.id, editAmount, editDueDate);
       setEditingSchedule(null);
     } catch (err) {
-      alert('Failed to edit scheduled installment');
+      alert(t('profile.failed_edit_schedule'));
     }
   };
 
@@ -126,7 +128,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
           onClick={onBack}
           className="gap-2"
         >
-          <ArrowLeft size={16} /> Back to Contributors
+          <ArrowLeft size={16} /> {t('profile.back_to_contributors')}
         </Button>
       </div>
 
@@ -150,7 +152,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
           {contributor.notes && (
             <div className="bg-foreground/5 border border-border rounded-xl p-4 text-sm mb-6">
               <div className="flex items-center gap-2 text-muted font-semibold text-xs uppercase tracking-wider mb-1.5">
-                <FileText size={12} /> Notes
+                <FileText size={12} /> {t('profile.notes')}
               </div>
               <p className="italic text-foreground/80 break-words leading-relaxed">{contributor.notes}</p>
             </div>
@@ -158,30 +160,30 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
           <div className="flex flex-col gap-1 mb-6">
             <div className="flex justify-between py-3 border-b border-border/50">
-              <span className="text-sm font-medium text-muted">Total Scheduled</span>
+              <span className="text-sm font-medium text-muted">{t('profile.total_scheduled')}</span>
               <span className="font-bold text-foreground">{totalScheduled.toLocaleString()} TZS</span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50">
-              <span className="text-sm font-medium text-muted">Total Paid</span>
+              <span className="text-sm font-medium text-muted">{t('profile.total_paid')}</span>
               <span className="font-bold text-success">{totalPaid.toLocaleString()} TZS</span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50 bg-primary/5 px-3 -mx-3 rounded-xl">
-              <span className="text-sm font-bold text-primary flex items-center gap-1.5"><Wallet size={14}/> Total Received</span>
+              <span className="text-sm font-bold text-primary flex items-center gap-1.5"><Wallet size={14}/> {t('profile.total_received')}</span>
               <span className="font-bold text-primary">{totalReceived.toLocaleString()} TZS</span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50">
-              <span className="text-sm font-medium text-muted">Remaining Balance</span>
+              <span className="text-sm font-medium text-muted">{t('profile.remaining_balance')}</span>
               <span className={`font-bold ${remainingBalance > 0 ? 'text-warning' : 'text-muted'}`}>
                 {remainingBalance.toLocaleString()} TZS
               </span>
             </div>
             <div className="flex justify-between py-3 border-b border-border/50 border-dashed mt-1">
-              <span className="text-sm font-medium text-muted">Overdue Balance</span>
+              <span className="text-sm font-medium text-muted">{t('profile.overdue_balance')}</span>
               <span className="font-bold text-danger">{overdueAmount.toLocaleString()} TZS</span>
             </div>
             {nextDueSchedule && (
               <div className="flex justify-between py-3 border-b border-border/50 border-dashed">
-                <span className="text-sm font-medium text-muted">Next Payment Due</span>
+                <span className="text-sm font-medium text-muted">{t('profile.next_payment_due')}</span>
                 <span className="font-bold text-info text-right">
                   {nextDueSchedule.remainingAmount.toLocaleString()} TZS <br/>
                   <span className="text-xs text-muted font-normal">({nextDueSchedule.dueDate})</span>
@@ -192,7 +194,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
           <div className="mb-8">
             <div className="flex justify-between text-sm font-bold text-foreground mb-2">
-              <span>Payment Progress</span>
+              <span>{t('profile.payment_progress')}</span>
               <span className="text-secondary">{progressPercent}%</span>
             </div>
             <div className="h-2.5 w-full bg-foreground/10 rounded-full overflow-hidden">
@@ -210,7 +212,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
               className="w-full gap-2"
               onClick={() => onOpenScheduleModal(contributorId)}
             >
-              <Plus size={18} /> Schedule Contribution
+              <Plus size={18} /> {t('profile.schedule_contribution')}
             </Button>
             <Button 
               variant="primary"
@@ -218,7 +220,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
               className="w-full gap-2"
               onClick={() => onOpenPaymentModal(contributorId)}
             >
-              <DollarSign size={18} /> Record Payment
+              <DollarSign size={18} /> {t('profile.record_payment')}
             </Button>
             <Button 
               variant="outline"
@@ -226,24 +228,24 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
               className="w-full gap-2 border-border/50"
               onClick={() => onOpenPayoutModal(contributorId)}
             >
-              <Wallet size={18} /> Record Payout
+              <Wallet size={18} /> {t('profile.record_payout')}
             </Button>
           </div>
         </div>
 
         {/* Right Side: Schedule Timeline */}
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
-          <h3 className="font-heading text-2xl font-bold text-foreground mb-8">Payment Schedule</h3>
+          <h3 className="font-heading text-2xl font-bold text-foreground mb-8">{t('profile.payment_schedule')}</h3>
 
           {contributorSchedules.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-dashed border-border rounded-xl">
               <Clock size={48} className="text-muted/50 mb-4" />
-              <p className="text-foreground font-medium mb-6">No contributions scheduled for this member yet.</p>
+              <p className="text-foreground font-medium mb-6">{t('profile.no_contributions')}</p>
               <Button 
                 variant="outline"
                 onClick={() => onOpenScheduleModal(contributorId)}
               >
-                Schedule First Contribution
+                {t('profile.schedule_first_contribution')}
               </Button>
             </div>
           ) : (
@@ -278,20 +280,20 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                             {new Date(schedule.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                           <span className="text-xs font-semibold px-2 py-1 bg-foreground/5 text-muted rounded-md uppercase tracking-wider">
-                            {schedule.frequency === 'one-time' ? 'One-time' : `Inst. ${schedule.installmentNumber}`}
+                            {schedule.frequency === 'one-time' ? t('profile.one_time') : `${t('profile.inst')} ${schedule.installmentNumber}`}
                           </span>
                           <span className={`text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${badgeBg.replace('/20', '')}`}>
-                            {schedule.status}
+                            {t(`status.${schedule.status.toLowerCase().replace(' ', '_')}`)}
                           </span>
                         </div>
                         
                         <div className="text-sm text-foreground mt-1">
-                          Amount: <strong className="font-bold">{schedule.amount.toLocaleString()} TZS</strong>
+                          {t('profile.amount')} <strong className="font-bold">{schedule.amount.toLocaleString()} TZS</strong>
                           {(schedule.amountPaid > 0) && (
-                            <span className="text-muted ml-2">| Paid: <span className="text-success font-bold">{schedule.amountPaid.toLocaleString()} TZS</span></span>
+                            <span className="text-muted ml-2">| {t('profile.paid')} <span className="text-success font-bold">{schedule.amountPaid.toLocaleString()} TZS</span></span>
                           )}
                           {(!isPaid && schedule.amountPaid > 0) && (
-                            <span className="text-muted ml-2">| Due: <span className="text-warning font-bold">{schedule.remainingAmount.toLocaleString()} TZS</span></span>
+                            <span className="text-muted ml-2">| {t('profile.due')} <span className="text-warning font-bold">{schedule.remainingAmount.toLocaleString()} TZS</span></span>
                           )}
                         </div>
                         
@@ -305,7 +307,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                             size="sm"
                             onClick={() => onOpenPaymentModal(contributorId, schedule.id)}
                           >
-                            Pay
+                            {t('profile.pay_btn')}
                           </Button>
                         )}
                         {canModify ? (
@@ -327,7 +329,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                           </div>
                         ) : (
                           <span className="text-xs text-muted/70 italic px-2">
-                            {isPaid ? 'Locked' : 'Locked (Partial)'}
+                            {isPaid ? t('profile.locked') : t('profile.locked_partial')}
                           </span>
                         )}
                       </div>
@@ -342,12 +344,12 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
         {/* Payouts History */}
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
           <h3 className="font-heading text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-            <Wallet size={20} className="text-primary"/> Payouts History
+            <Wallet size={20} className="text-primary"/> {t('profile.payouts_history')}
           </h3>
 
           {contributorPayouts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 px-6 text-center border-2 border-dashed border-border rounded-xl">
-              <p className="text-muted text-sm font-medium">No payouts recorded for this member.</p>
+              <p className="text-muted text-sm font-medium">{t('profile.no_payouts')}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -373,7 +375,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm">
           <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-xl flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-border/50">
-              <h3 className="font-heading text-xl font-bold text-foreground">Edit Installment</h3>
+              <h3 className="font-heading text-xl font-bold text-foreground">{t('profile.edit_installment')}</h3>
               <button 
                 className="p-2 text-muted hover:text-foreground hover:bg-foreground/5 rounded-full transition-colors"
                 onClick={() => setEditingSchedule(null)}
@@ -384,7 +386,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
             <form onSubmit={handleSaveEdit} className="p-6 flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-muted" htmlFor="editAmount">Installment Amount *</label>
+                <label className="text-sm font-semibold text-muted" htmlFor="editAmount">{t('profile.installment_amount')}</label>
                 <input
                   id="editAmount"
                   type="number"
@@ -396,7 +398,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-muted" htmlFor="editDueDate">Due Date *</label>
+                <label className="text-sm font-semibold text-muted" htmlFor="editDueDate">{t('profile.due_date')}</label>
                 <input
                   id="editDueDate"
                   type="date"
@@ -413,13 +415,13 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                   type="button" 
                   onClick={() => setEditingSchedule(null)}
                 >
-                  Cancel
+                  {t('profile.cancel')}
                 </Button>
                 <Button 
                   variant="primary"
                   type="submit" 
                 >
-                  Save Changes
+                  {t('profile.save_changes')}
                 </Button>
               </div>
             </form>

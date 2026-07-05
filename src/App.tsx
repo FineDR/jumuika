@@ -12,6 +12,7 @@ import { ContributorRegisterModal } from './components/contributors/ContributorR
 import { ScheduleModal } from './components/schedules/ScheduleModal';
 import { BulkScheduleModal } from './components/schedules/BulkScheduleModal';
 import { RotationManager } from './components/merrygoround/RotationManager';
+import { LoanManager } from './components/tablebanking/LoanManager';
 import { PaymentModal } from './components/payments/PaymentModal';
 import { PayoutModal } from './components/payments/PayoutModal';
 import { CalendarView } from './components/calendar/CalendarView';
@@ -163,6 +164,8 @@ function AppContent() {
             />
           </div>
         );
+      case 'loans':
+        return <LoanManager />;
       case 'settings':
         return <Settings />;
       default:

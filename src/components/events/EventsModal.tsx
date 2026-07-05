@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useJumuika } from '../../context/JumuikaContext';
 import { X, FolderPlus, Target, HandHeart, RefreshCw, Landmark } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 
 type EventType = 'harambee' | 'merry-go-round' | 'table-banking';
@@ -16,36 +17,6 @@ interface EventTypeOption {
   bgColor: string;
 }
 
-const EVENT_TYPES: EventTypeOption[] = [
-  {
-    id: 'harambee',
-    label: 'Harambee',
-    description: 'Everyone contributes toward a shared one-time fundraising goal.',
-    icon: <HandHeart size={22} />,
-    color: 'text-emerald-500',
-    borderColor: 'border-emerald-500',
-    bgColor: 'bg-emerald-500/10',
-  },
-  {
-    id: 'merry-go-round',
-    label: 'Merry-Go-Round',
-    description: 'Members pay monthly and the pool is given to one member at a time.',
-    icon: <RefreshCw size={22} />,
-    color: 'text-violet-500',
-    borderColor: 'border-violet-500',
-    bgColor: 'bg-violet-500/10',
-  },
-  {
-    id: 'table-banking',
-    label: 'Table Banking',
-    description: 'Pool savings grow and members can take loans from the shared fund.',
-    icon: <Landmark size={22} />,
-    color: 'text-sky-500',
-    borderColor: 'border-sky-500',
-    bgColor: 'bg-sky-500/10',
-  },
-];
-
 interface EventsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,18 +24,49 @@ interface EventsModalProps {
 
 export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => {
   const { addEvent } = useJumuika();
+  const { t } = useTranslation();
   const [eventName, setEventName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [selectedType, setSelectedType] = useState<EventType>('harambee');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const EVENT_TYPES: EventTypeOption[] = [
+    {
+      id: 'harambee',
+      label: t('events_modal.harambee'),
+      description: t('events_modal.harambee_desc'),
+      icon: <HandHeart size={22} />,
+      color: 'text-emerald-500',
+      borderColor: 'border-emerald-500',
+      bgColor: 'bg-emerald-500/10',
+    },
+    {
+      id: 'merry-go-round',
+      label: t('events_modal.merry_go_round'),
+      description: t('events_modal.merry_go_round_desc'),
+      icon: <RefreshCw size={22} />,
+      color: 'text-violet-500',
+      borderColor: 'border-violet-500',
+      bgColor: 'bg-violet-500/10',
+    },
+    {
+      id: 'table-banking',
+      label: t('events_modal.table_banking'),
+      description: t('events_modal.table_banking_desc'),
+      icon: <Landmark size={22} />,
+      color: 'text-sky-500',
+      borderColor: 'border-sky-500',
+      bgColor: 'bg-sky-500/10',
+    },
+  ];
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventName.trim()) {
-      setError('Event Name is required');
+      setError(t('events_modal.name_required'));
       return;
     }
     setError('');
@@ -74,10 +76,10 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
       setEventName('');
       setTargetAmount('');
       setSelectedType('harambee');
-      toast.success('Event created successfully!');
+      toast.success(t('events_modal.success_create'));
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to create event');
+      setError(err.message || t('events_modal.failed_create'));
     } finally {
       setSaving(false);
     }
@@ -87,7 +89,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-md animate-fade-in">
       <div className="w-full max-w-[480px] bg-surface rounded-2xl shadow-2xl border border-border/50 animate-scale-in flex flex-col max-h-[92vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border/50 bg-background/50 backdrop-blur-sm">
-          <h3 className="font-heading text-lg font-bold text-foreground">Create New Event</h3>
+          <h3 className="font-heading text-lg font-bold text-foreground">{t('events_modal.title')}</h3>
           <button
             className="p-1.5 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all focus:outline-none"
             onClick={onClose}
@@ -105,7 +107,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
 
           {/* Event Type Picker */}
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-muted uppercase tracking-wider">Event Type <span className="text-danger">*</span></span>
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider">{t('events_modal.event_type')} <span className="text-danger">*</span></span>
             <div className="flex flex-col gap-2">
               {EVENT_TYPES.map((type) => {
                 const isSelected = selectedType === type.id;
@@ -143,7 +145,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="eventName">
-                Event Name <span className="text-danger">*</span>
+                {t('events_modal.event_name')} <span className="text-danger">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
@@ -154,9 +156,9 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
                   type="text"
                   className="w-full pl-9 pr-3 py-2.5 bg-foreground/5 border border-border/50 rounded-xl text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/50 focus:bg-background"
                   placeholder={
-                    selectedType === 'harambee' ? 'e.g. Wedding Harambee 2026'
-                    : selectedType === 'merry-go-round' ? 'e.g. Chama Monthly Round'
-                    : 'e.g. Community Table Bank'
+                    selectedType === 'harambee' ? t('events_modal.harambee_placeholder')
+                    : selectedType === 'merry-go-round' ? t('events_modal.merry_go_round_placeholder')
+                    : t('events_modal.table_banking_placeholder')
                   }
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
@@ -168,7 +170,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="targetAmount">
-                {selectedType === 'merry-go-round' ? 'Monthly Contribution per Member (Optional)' : 'Target Amount (Optional)'}
+                {selectedType === 'merry-go-round' ? t('events_modal.monthly_contribution') : t('events_modal.target_amount')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
@@ -188,10 +190,10 @@ export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => 
 
             <div className="flex justify-end gap-2 mt-1 pt-4 border-t border-border/50">
               <Button variant="ghost" type="button" onClick={onClose} disabled={saving} className="px-4 py-2 text-sm">
-                Cancel
+                {t('events_modal.cancel')}
               </Button>
               <Button variant="primary" type="submit" isLoading={saving} className="px-5 py-2 text-sm">
-                {saving ? 'Creating...' : 'Create Event'}
+                {saving ? t('events_modal.creating') : t('events_modal.create_btn')}
               </Button>
             </div>
           </form>

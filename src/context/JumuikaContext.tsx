@@ -15,11 +15,11 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import type { Contributor, Schedule, Payment, Event, Payout } from '../types';
+import type { Contributor, Schedule, Payment, Event, Payout, Loan } from '../types';
 import { calculateStatus, generateInstallmentDates } from '../utils/schedules';
 
 // Re-export type definitions for backwards compatibility and ease of import
-export type { Contributor, Schedule, Payment, Event, Payout };
+export type { Contributor, Schedule, Payment, Event, Payout, Loan };
 export { calculateStatus, generateInstallmentDates };
 
 interface JumuikaContextType {
@@ -30,6 +30,8 @@ interface JumuikaContextType {
   schedules: Schedule[];
   payments: Payment[];
   payouts: Payout[];
+  loans: Loan[];
+  loansError: string | null;
   loading: boolean;
   
   // Actions
@@ -68,6 +70,17 @@ interface JumuikaContextType {
     notes?: string
   ) => Promise<number>;
   clearDemoData: () => Promise<void>;
+  // Table Banking loan actions
+  issueLoan: (
+    contributorId: string,
+    principalAmount: number,
+    interestRate: number,
+    disbursementDate: string,
+    dueDate: string,
+    notes?: string
+  ) => Promise<string>;
+  recordLoanRepayment: (loanId: string, amount: number, paymentMethod: string) => Promise<void>;
+  deleteLoan: (loanId: string) => Promise<void>;
 }
 
 const JumuikaContext = createContext<JumuikaContextType | undefined>(undefined);
@@ -79,6 +92,8 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loansError, setLoansError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // 1. Setup events listener
@@ -175,11 +190,33 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(false);
     });
 
+    const loansQuery = query(
+      collection(db, 'loans'),
+      where('eventId', '==', currentEventId)
+    );
+    const unsubLoans = onSnapshot(loansQuery, (snapshot) => {
+      const list: Loan[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() } as Loan);
+      });
+      // Sort client-side by createdAt descending — no composite index needed
+      list.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() ?? 0;
+        const bTime = b.createdAt?.toMillis?.() ?? 0;
+        return bTime - aTime;
+      });
+      setLoans(list);
+    }, (error) => {
+      console.error('Error fetching loans:', error);
+      setLoansError(error.message ?? 'Failed to load loans');
+    });
+
     return () => {
       unsubContributors();
       unsubSchedules();
       unsubPayments();
       unsubPayouts();
+      unsubLoans();
     };
   }, [currentEventId]);
 
@@ -578,6 +615,104 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     deleteDoc(doc(db, 'payouts', payoutId)).catch(console.error);
   };
 
+  // ─── Table Banking: Loan Actions ─────────────────────────────────────────
+
+  const issueLoan = async (
+    contributorId: string,
+    principalAmount: number,
+    interestRate: number,
+    disbursementDate: string,
+    dueDate: string,
+    notes: string = ''
+  ): Promise<string> => {
+    // Calculate months between disbursement and due date
+    const start = new Date(disbursementDate);
+    const end = new Date(dueDate);
+    const months = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+    const interestAmount = Math.round(principalAmount * (interestRate / 100) * months);
+    const totalRepayable = principalAmount + interestAmount;
+
+    const loanRef = doc(collection(db, 'loans'));
+    const payoutRef = doc(collection(db, 'payouts'));
+
+    const batch = writeBatch(db);
+
+    // Create loan record
+    batch.set(loanRef, {
+      id: loanRef.id,
+      eventId: currentEventId,
+      contributorId,
+      principalAmount,
+      interestRate,
+      interestAmount,
+      totalRepayable,
+      amountRepaid: 0,
+      remainingBalance: totalRepayable,
+      disbursementDate,
+      dueDate,
+      status: 'Active',
+      notes,
+      createdAt: serverTimestamp(),
+    });
+
+    // Record as a payout so the pool balance decreases
+    batch.set(payoutRef, {
+      id: payoutRef.id,
+      eventId: currentEventId,
+      contributorId,
+      amount: principalAmount,
+      payoutDate: disbursementDate,
+      notes: `Loan disbursement (Loan ID: ${loanRef.id})`,
+      loanId: loanRef.id,
+      createdAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+    return loanRef.id;
+  };
+
+  const recordLoanRepayment = async (
+    loanId: string,
+    amount: number,
+    paymentMethod: string
+  ): Promise<void> => {
+    await runTransaction(db, async (transaction) => {
+      const loanRef = doc(db, 'loans', loanId);
+      const loanDoc = await transaction.get(loanRef);
+      if (!loanDoc.exists()) throw new Error('Loan not found');
+      const loan = loanDoc.data() as Loan;
+
+      const newAmountRepaid = loan.amountRepaid + amount;
+      const newRemaining = Math.max(0, loan.totalRepayable - newAmountRepaid);
+      const newStatus: Loan['status'] = newRemaining <= 0 ? 'Completed' : 'Active';
+
+      transaction.update(loanRef, {
+        amountRepaid: newAmountRepaid,
+        remainingBalance: newRemaining,
+        status: newStatus,
+      });
+
+      // Record as a payment so the pool balance increases
+      const paymentRef = doc(collection(db, 'payments'));
+      transaction.set(paymentRef, {
+        id: paymentRef.id,
+        eventId: currentEventId,
+        contributorId: loan.contributorId,
+        scheduleId: null,
+        loanId,
+        amount,
+        paymentMethod,
+        recordedBy: 'Loan Repayment',
+        notes: `Loan repayment (Loan ID: ${loanId})`,
+        createdAt: serverTimestamp(),
+      });
+    });
+  };
+
+  const deleteLoan = async (loanId: string): Promise<void> => {
+    deleteDoc(doc(db, 'loans', loanId)).catch(console.error);
+  };
+
   const setRotationOrder = async (order: string[]): Promise<void> => {
     if (!currentEventId) return;
     const { updateDoc } = await import('firebase/firestore');
@@ -702,6 +837,8 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       schedules,
       payments,
       payouts,
+      loans,
+      loansError,
       loading,
       addEvent,
       addContributor,
@@ -713,7 +850,10 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       deletePayout,
       setRotationOrder,
       bulkScheduleAll,
-      clearDemoData
+      clearDemoData,
+      issueLoan,
+      recordLoanRepayment,
+      deleteLoan,
     }}>
       {children}
     </JumuikaContext.Provider>
