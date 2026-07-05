@@ -201,6 +201,7 @@ const resources = {
       "contributors_page": {
         "title": "Contributors",
         "subtitle": "Manage members, view their balances and record payments",
+        "search_placeholder": "Search by member name, phone, notes...",
         "schedule_all": "Schedule All",
         "total": "Total Contributors",
         "active": "Active",
@@ -498,6 +499,7 @@ const resources = {
       "contributors_page": {
         "title": "Wachangiaji",
         "subtitle": "Dhibiti wanachama, tazama salio lao na rekodi malipo",
+        "search_placeholder": "Tafuta kwa jina la mwanachama, simu, maelezo...",
         "schedule_all": "Panga Wote",
         "total": "Jumla ya Wachangiaji",
         "active": "Hai",
