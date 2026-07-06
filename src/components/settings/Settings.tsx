@@ -27,7 +27,7 @@ export const Settings: React.FC = () => {
     }
 
     const dateStr = new Date().toLocaleString(i18n.language);
-    const activeEventName = currentEvent ? currentEvent.name : 'Jumuika';
+    const activeEventName = currentEvent ? currentEvent.name : 'Locoo';
 
     const cardsHtml = summaryCards.map(c => `
       <div class="summary-card">
@@ -283,7 +283,7 @@ export const Settings: React.FC = () => {
           </table>
           
           <div class="footer">
-            Generated automatically by Jumuika Scheduled Contribution Engine.
+            Generated automatically by Locoo - Jumuika Contributions Suite.
           </div>
           
           <script>
@@ -301,7 +301,7 @@ export const Settings: React.FC = () => {
 
   // 3. Export Contributors PDF
   const handleExportContributors = () => {
-    const docTitle = `${currentEvent ? currentEvent.name : 'Jumuika'} - Members Ledger`;
+    const docTitle = `${currentEvent ? currentEvent.name : 'Locoo'} - Members Ledger`;
     const docType = 'Members Ledger Statement';
     
     const summaryCards = [
@@ -336,7 +336,7 @@ export const Settings: React.FC = () => {
 
   // 4. Export Payments PDF
   const handleExportPayments = () => {
-    const docTitle = `${currentEvent ? currentEvent.name : 'Jumuika'} - Payments Log`;
+    const docTitle = `${currentEvent ? currentEvent.name : 'Locoo'} - Payments Log`;
     const docType = 'Payments Ledger Statement';
     
     const summaryCards = [
@@ -373,7 +373,7 @@ export const Settings: React.FC = () => {
 
   // 5. Export Schedules PDF
   const handleExportSchedules = () => {
-    const docTitle = `${currentEvent ? currentEvent.name : 'Jumuika'} - Contribution Schedules`;
+    const docTitle = `${currentEvent ? currentEvent.name : 'Locoo'} - Contribution Schedules`;
     const docType = 'Contribution Schedules Statement';
 
     const totalRemainingSchedulesSum = schedules.reduce((sum, curr) => sum + (curr.remainingAmount || 0), 0);

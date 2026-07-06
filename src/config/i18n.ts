@@ -5,7 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   en: {
     translation: {
-      "app_name": "Jumuika",
+      "app_name": "Locoo",
       "welcome": "Welcome back",
       "total_balance": "Total Balance",
       "active_contributors": "Active Contributors",
@@ -13,7 +13,7 @@ const resources = {
       "recent_payments": "Recent Payments",
       "create_event": "Create Event",
       "onboarding_welcome": {
-        "title": "Welcome to Jumuika",
+        "title": "Welcome to Locoo",
         "subtitle": "The scheduled contribution engine. Track expected payments over time, cascade receipts, and monitor outstanding member ledgers automatically.",
         "step1_title": "Register Contributor",
         "step1_desc": "Save contributor details once. The profile opens automatically for immediate scheduling.",
@@ -289,7 +289,7 @@ const resources = {
         },
         "cta": {
           "title": "Ready to get started?",
-          "subtitle": "Join other organizers who trust Jumuika to manage their contribution events with clarity and confidence.",
+          "subtitle": "Join other organizers who trust Locoo and its modular tools to manage their operations with clarity and confidence.",
           "perks": ["Free to use", "No credit card", "Cloud secured", "Mobile ready"],
           "button_guest": "Get Started Free",
           "button_user": "Go to Dashboard"
@@ -303,7 +303,7 @@ const resources = {
   },
   sw: {
     translation: {
-      "app_name": "Jumuika",
+      "app_name": "Locoo",
       "welcome": "Karibu tena",
       "total_balance": "Jumla ya Salio",
       "active_contributors": "Wachangiaji Hai",
@@ -311,7 +311,7 @@ const resources = {
       "recent_payments": "Malipo ya Hivi Karibuni",
       "create_event": "Unda Tukio",
       "onboarding_welcome": {
-        "title": "Karibu Jumuika",
+        "title": "Karibu Locoo",
         "subtitle": "Mfumo wa michango iliyopangwa. Fuatilia malipo yanayotarajiwa, unganisha risiti, na uangalie salio la wanachama moja kwa moja.",
         "step1_title": "Sajili Mchangiaji",
         "step1_desc": "Hifadhi maelezo mara moja. Wasifu unafunguka moja kwa moja kwa kupanga ratiba.",
@@ -587,7 +587,7 @@ const resources = {
         },
         "cta": {
           "title": "Uko tayari kuanza?",
-          "subtitle": "Jiunge na waratibu wengine wanaotumia Jumuika kudhibiti matukio yao ya michango kwa uhakika.",
+          "subtitle": "Jiunge na waratibu wengine wanaotumia Locoo na mifumo yake kudhibiti michango yao kwa uhakika.",
           "perks": ["Bure kutumia", "Hakuna kadi ya mkopo", "Usalama wa Wingu", "Inafanya kazi kwa simu"],
           "button_guest": "Anza Bure",
           "button_user": "Nenda Dashibodi"

@@ -12,31 +12,20 @@ export const LogoIcon: React.FC<LogoProps> = ({ className = "w-6 h-6" }) => (
     className={className}
   >
     <defs>
-      <linearGradient id="brandGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#14b8a6"/>
-        <stop offset="1" stopColor="#3b82f6"/>
+      <linearGradient id="locooGrad" x1="10" y1="6" x2="32" y2="30" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#14b8a6"/> {/* Brand Secondary: Teal */}
+        <stop offset="0.5" stopColor="#0d9488"/> {/* Mid Teal */}
+        <stop offset="1" stopColor="#3b82f6"/> {/* Brand Info: Blue */}
       </linearGradient>
     </defs>
     
-    {/* Outer Coin/Shield Ring - Represents Trust, Security, and Finance */}
-    <circle cx="20" cy="20" r="18" fill="url(#brandGrad)" fillOpacity="0.15" stroke="url(#brandGrad)" strokeWidth="2"/>
-    
-    {/* Inner Coin Solid - Represents the pooled funds */}
-    <circle cx="20" cy="20" r="14" fill="url(#brandGrad)"/>
-    
-    {/* Side People - Representing the community coming together */}
-    <g fill="white" fillOpacity="0.75">
-      <circle cx="13" cy="18" r="2.5"/>
-      <path d="M9 26 C9 23.5 11 21.5 13.5 21.5 C15 21.5 16 22.5 17 24 L17 26 Z"/>
-      
-      <circle cx="27" cy="18" r="2.5"/>
-      <path d="M31 26 C31 23.5 29 21.5 26.5 21.5 C25 21.5 24 22.5 23 24 L23 26 Z"/>
-    </g>
+    {/* Mathematically-perfect continuous letter 'L' ribbon */}
+    <path 
+      d="M13.5 7C11.567 7 10 8.567 10 10.5V26.5C10 28.433 11.567 30 13.5 30H29.5C31.433 30 33 28.433 33 26.5C33 24.567 31.433 23 29.5 23H17V10.5C17 8.567 15.433 7 13.5 7Z" 
+      fill="url(#locooGrad)"
+    />
 
-    {/* Center Person - Representing the group leader or unified target */}
-    <g fill="white">
-      <circle cx="20" cy="15" r="3"/>
-      <path d="M14 26 C14 22.5 16.5 19.5 20 19.5 C23.5 19.5 26 22.5 26 26 Z"/>
-    </g>
+    {/* Glowing/pulsing modular node at the top right */}
+    <circle cx="29.5" cy="10.5" r="3" fill="#14b8a6" className="animate-pulse" />
   </svg>
 );

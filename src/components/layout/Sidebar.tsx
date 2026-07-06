@@ -69,9 +69,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex items-center gap-3 shrink-0">
         <LogoIcon className="w-8 h-8" />
         <h1 className="font-heading text-xl xs:text-2xl font-extrabold text-secondary uppercase tracking-wider drop-shadow-sm">
-          Jumuika
+          Locoo
         </h1>
       </div>
+
 
       <div className="mt-2 relative shrink-0">
         <span className="text-[10px] xs:text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">Active Event</span>
@@ -223,8 +224,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className="text-[10px] xs:text-xs text-muted text-center mt-1 xs:mt-2 shrink-0">
-        <p className="font-medium">© 2026 Jumuika App</p>
-        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Scheduled Contributions</p>
+        <p className="font-medium">© 2026 Locoo App</p>
+        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Jumuika Contributions Suite</p>
       </div>
     </aside>
     </>

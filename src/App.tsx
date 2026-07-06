@@ -204,7 +204,7 @@ function AppContent() {
                 <path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/>
               </svg>
             </div>
-            <h1 className="font-heading text-lg font-extrabold text-foreground tracking-wider">Jumuika</h1>
+            <h1 className="font-heading text-lg font-extrabold text-foreground tracking-wider">Locoo</h1>
           </div>
 
           {/* Animated Hamburger / X Button */}
@@ -239,7 +239,7 @@ function AppContent() {
           <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 md:p-8 lg:p-10">
         {loading ? (
           <div className="flex items-center justify-center h-[80vh] text-lg text-muted">
-            Loading Jumuika data...
+            Loading Locoo data...
           </div>
         ) : contributors.length === 0 && activeTab === 'dashboard' ? (
           <OnboardingWelcome onOpenRegisterModal={() => setIsRegisterOpen(true)} />

@@ -69,11 +69,11 @@ export const AuthPage: React.FC = () => {
               <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 Welcome to{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-info">
-                  Jumuika
+                  Locoo
                 </span>
               </h1>
               <p className="text-muted text-sm sm:text-base max-w-[260px] sm:max-w-xs mx-auto leading-snug">
-                Modern event and contributor management, simplified.
+                Modular business suite, featuring the Jumuika contributions manager.
               </p>
             </div>
           </div>

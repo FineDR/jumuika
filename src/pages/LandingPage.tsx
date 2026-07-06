@@ -253,7 +253,7 @@ export const LandingPage: React.FC = () => {
                   <div className="flex-1 flex justify-center">
                     <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-background/60 border border-border/40 text-xs text-muted font-mono">
                       <Lock className="w-2.5 h-2.5 text-success" />
-                      jumuika.twendedigital.tech
+                      locoo.twendedigital.tech
                     </div>
                   </div>
                 </div>
@@ -526,7 +526,7 @@ export const LandingPage: React.FC = () => {
               <span className="text-border">·</span>
               <span>{t('landing.footer.tagline')}</span>
             </div>
-            <p>© {new Date().getFullYear()} Jumuika · <a href="/auth" className="hover:text-foreground transition-colors underline underline-offset-2">{t('landing.footer.privacy')}</a></p>
+            <p>© {new Date().getFullYear()} Locoo · <a href="/auth" className="hover:text-foreground transition-colors underline underline-offset-2">{t('landing.footer.privacy')}</a></p>
           </div>
         </div>
       </footer>
