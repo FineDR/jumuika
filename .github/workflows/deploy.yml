@@ -30,8 +30,8 @@ jobs:
             --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" \
             --build-arg VITE_FIREBASE_APP_ID="${{ secrets.VITE_FIREBASE_APP_ID }}" \
             --build-arg VITE_FIREBASE_MEASUREMENT_ID="${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" \
-            -t ${{ secrets.DOCKER_USERNAME }}/multi-frontend-biashara-connect-4c1472b1:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/multi-frontend-biashara-connect-4c1472b1:latest
+            -t ${{ secrets.DOCKER_USERNAME }}/multi-frontend-jumuika:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/multi-frontend-jumuika:latest
 
       - name: SSH and deploy on server
         uses: appleboy/ssh-action@v0.1.8
@@ -41,5 +41,5 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             cd ~/multi-frontend
-            docker-compose pull biashara-connect-4c1472b1
-            docker-compose up -d --force-recreate biashara-connect-4c1472b1
+            docker-compose pull jumuika
+            docker-compose up -d --force-recreate jumuika
