@@ -24,7 +24,18 @@
     <meta property="twitter:url" content="https://locoo.online/" />
     <meta property="twitter:title" content="Locoo | Modern Modular Business Platform" />
     <meta property="twitter:description" content="Locoo is a premium modular platform for business management, starting with the Jumuika group savings module." />
-    <meta property="twitter:image" content="https://locoo.online/og-image.jpg" />
+    
+    <!-- Prevent theme flashing on initial load -->
+    <script>
+      (function() {
+        const theme = localStorage.getItem('jumuika-theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
