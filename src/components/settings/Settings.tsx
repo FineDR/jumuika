@@ -1,11 +1,11 @@
 import React from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { useTranslation } from 'react-i18next';
 import { Database, Users, Receipt, CalendarRange, Landmark, FileDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 export const Settings: React.FC = () => {
-  const { events, currentEventId, contributors, schedules, payments, clearDemoData } = useJumuika();
+  const { events, currentEventId, contributors, schedules, payments, clearDemoData } = useLocoo();
   const { t, i18n } = useTranslation();
 
   const currentEvent = events.find(e => e.id === currentEventId);
@@ -283,7 +283,7 @@ export const Settings: React.FC = () => {
           </table>
           
           <div class="footer">
-            Generated automatically by Locoo - Jumuika Contributions Suite.
+            Generated automatically by Locoo - Locoo Contributions Suite.
           </div>
           
           <script>

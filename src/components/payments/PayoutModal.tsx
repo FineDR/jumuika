@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, Calendar, AlignLeft, DollarSign, Wallet, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -11,7 +11,7 @@ interface PayoutModalProps {
 }
 
 export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contributorId }) => {
-  const { addPayout, contributors, payments, payouts, events, currentEventId } = useJumuika();
+  const { addPayout, contributors, payments, payouts, events, currentEventId } = useLocoo();
   const contributor = contributors.find(c => c.id === contributorId);
   
   const [amount, setAmount] = useState('');

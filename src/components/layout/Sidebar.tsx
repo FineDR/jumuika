@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onCloseMobile
 }) => {
-  const { events, currentEventId, setCurrentEventId, contributors } = useJumuika();
+  const { events, currentEventId, setCurrentEventId, contributors } = useLocoo();
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [eventSearch, setEventSearch] = useState('');
@@ -225,7 +225,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="text-[10px] xs:text-xs text-muted text-center mt-1 xs:mt-2 shrink-0">
         <p className="font-medium">© 2026 Locoo App</p>
-        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Jumuika Contributions Suite</p>
+        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Locoo Contributions Suite</p>
       </div>
     </aside>
     </>

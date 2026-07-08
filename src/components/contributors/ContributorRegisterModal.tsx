@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, User, Phone, AlignLeft, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -13,7 +13,7 @@ interface ContributorRegisterModalProps {
 import { useTranslation } from 'react-i18next';
 
 export const ContributorRegisterModal: React.FC<ContributorRegisterModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { addContributor, events, currentEventId } = useJumuika();
+  const { addContributor, events, currentEventId } = useLocoo();
   const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');

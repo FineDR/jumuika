@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { Search, Plus, User, Phone, ChevronRight, CalendarClock } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -22,7 +22,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
   onOpenBulkScheduleModal
 }) => {
   const { t } = useTranslation();
-  const { contributors } = useJumuika();
+  const { contributors } = useLocoo();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'balance-desc' | 'paid-desc' | 'created-desc'>('created-desc');
 

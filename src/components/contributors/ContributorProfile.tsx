@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika, type Schedule } from '../../context/JumuikaContext';
+import { useLocoo, type Schedule } from '../../context/LocooContext';
 import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, Plus, DollarSign, Edit2, Trash2, 
@@ -22,7 +22,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
   onOpenPaymentModal,
   onOpenPayoutModal
 }) => {
-  const { contributors, schedules, payouts, deleteSchedule, editSchedule } = useJumuika();
+  const { contributors, schedules, payouts, deleteSchedule, editSchedule } = useLocoo();
   const { t } = useTranslation();
   
   // Edit schedule inline modal state

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, User, DollarSign, Percent, Calendar, AlignLeft, Landmark, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -10,7 +10,7 @@ interface IssueLoanModalProps {
 }
 
 export const IssueLoanModal: React.FC<IssueLoanModalProps> = ({ isOpen, onClose }) => {
-  const { contributors, payments, payouts, loans, currentEventId, issueLoan } = useJumuika();
+  const { contributors, payments, payouts, loans, currentEventId, issueLoan } = useLocoo();
 
   const [contributorId, setContributorId] = useState('');
   const [principalAmount, setPrincipalAmount] = useState('');

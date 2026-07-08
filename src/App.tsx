@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { JumuikaProvider, useJumuika } from './context/JumuikaContext';
+import { LocooProvider, useLocoo } from './context/LocooContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ContributorList } from './components/contributors/ContributorList';
@@ -42,7 +42,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
-  const { loading, contributors } = useJumuika();
+  const { loading, contributors } = useLocoo();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedContributorId, setSelectedContributorId] = useState<string | null>(null);
 
@@ -388,9 +388,9 @@ function App() {
               path="/dashboard" 
               element={
                 <ProtectedRoute>
-                  <JumuikaProvider>
+                  <LocooProvider>
                     <AppContent />
-                  </JumuikaProvider>
+                  </LocooProvider>
                 </ProtectedRoute>
               } 
             />

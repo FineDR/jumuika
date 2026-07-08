@@ -74,7 +74,7 @@ export const LandingPage: React.FC = () => {
   ];
 
   const testimonials = [
-    { quote: 'Jumuika completely transformed how we track contributions for our harambee. No more spreadsheets!', name: 'James Kamau', role: 'Community Treasurer', initials: 'JK', color: 'from-teal-400 to-cyan-400' },
+    { quote: 'Locoo completely transformed how we track contributions for our harambee. No more spreadsheets!', name: 'James Kamau', role: 'Community Treasurer', initials: 'JK', color: 'from-teal-400 to-cyan-400' },
     { quote: 'Setting up installment plans and tracking who has paid is now effortless. Highly recommend.', name: 'Wanjiru Njeri', role: 'Event Coordinator', initials: 'WN', color: 'from-violet-400 to-blue-400' },
   ];
 

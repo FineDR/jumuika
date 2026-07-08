@@ -73,7 +73,7 @@ export const AuthPage: React.FC = () => {
                 </span>
               </h1>
               <p className="text-muted text-sm sm:text-base max-w-[260px] sm:max-w-xs mx-auto leading-snug">
-                Modular business suite, featuring the Jumuika contributions manager.
+                Modular business suite, featuring the Locoo contributions manager.
               </p>
             </div>
           </div>

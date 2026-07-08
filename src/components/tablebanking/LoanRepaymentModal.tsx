@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
-import type { Loan } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
+import type { Loan } from '../../context/LocooContext';
 import { X, DollarSign, CreditCard, Landmark, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -14,7 +14,7 @@ interface LoanRepaymentModalProps {
 const PAYMENT_METHODS = ['Cash', 'M-Pesa', 'Bank Transfer', 'Tigopesa', 'Airtel Money', 'Other'];
 
 export const LoanRepaymentModal: React.FC<LoanRepaymentModalProps> = ({ isOpen, onClose, loan }) => {
-  const { contributors, recordLoanRepayment } = useJumuika();
+  const { contributors, recordLoanRepayment } = useLocoo();
 
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');

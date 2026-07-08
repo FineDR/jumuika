@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import {
   X, ArrowUp, ArrowDown, RefreshCw, CheckCircle2,
   Clock, AlertCircle, Trophy, Users
@@ -26,7 +26,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
     currentEventId,
     events,
     setRotationOrder,
-  } = useJumuika();
+  } = useLocoo();
 
   const currentEvent = events.find(e => e.id === currentEventId);
   const eventContributors = contributors.filter(c => c.eventId === currentEventId);

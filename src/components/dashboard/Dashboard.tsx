@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { 
   Calendar, AlertCircle, Clock, CheckCircle2, User, 
   Wallet, TrendingUp, ArrowRight, Activity, HandHeart, RefreshCw, Landmark
@@ -19,7 +19,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenPaymentModal,
   onOpenRegisterModal
 }) => {
-  const { schedules, contributors, payments, payouts, loans, events, currentEventId } = useJumuika();
+  const { schedules, contributors, payments, payouts, loans, events, currentEventId } = useLocoo();
   const { t } = useTranslation();
 
   const currentEvent = events.find(e => e.id === currentEventId);

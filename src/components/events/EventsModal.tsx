@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, FolderPlus, Target, HandHeart, RefreshCw, Landmark } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +23,7 @@ interface EventsModalProps {
 }
 
 export const EventsModal: React.FC<EventsModalProps> = ({ isOpen, onClose }) => {
-  const { addEvent } = useJumuika();
+  const { addEvent } = useLocoo();
   const { t } = useTranslation();
   const [eventName, setEventName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');

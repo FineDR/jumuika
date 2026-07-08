@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { ChevronLeft, ChevronRight, User, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +8,7 @@ interface CalendarViewProps {
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorId }) => {
-  const { schedules, contributors } = useJumuika();
+  const { schedules, contributors } = useLocoo();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 

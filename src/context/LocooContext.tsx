@@ -22,7 +22,7 @@ import { calculateStatus, generateInstallmentDates } from '../utils/schedules';
 export type { Contributor, Schedule, Payment, Event, Payout, Loan };
 export { calculateStatus, generateInstallmentDates };
 
-interface JumuikaContextType {
+interface LocooContextType {
   currentEventId: string;
   setCurrentEventId: (id: string) => void;
   events: Event[];
@@ -83,9 +83,9 @@ interface JumuikaContextType {
   deleteLoan: (loanId: string) => Promise<void>;
 }
 
-const JumuikaContext = createContext<JumuikaContextType | undefined>(undefined);
+const LocooContext = createContext<LocooContextType | undefined>(undefined);
 
-export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const LocooProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentEventId, setCurrentEventId] = useState<string>('default-event');
   const [events, setEvents] = useState<Event[]>([]);
   const [contributors, setContributors] = useState<Contributor[]>([]);
@@ -829,7 +829,7 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 
   return (
-    <JumuikaContext.Provider value={{
+    <LocooContext.Provider value={{
       currentEventId,
       setCurrentEventId,
       events,
@@ -856,14 +856,14 @@ export const JumuikaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       deleteLoan,
     }}>
       {children}
-    </JumuikaContext.Provider>
+    </LocooContext.Provider>
   );
 };
 
-export const useJumuika = () => {
-  const context = useContext(JumuikaContext);
+export const useLocoo = () => {
+  const context = useContext(LocooContext);
   if (context === undefined) {
-    throw new Error('useJumuika must be used within a JumuikaProvider');
+    throw new Error('useLocoo must be used within a LocooProvider');
   }
   return context;
 };

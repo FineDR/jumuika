@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, Info, ChevronDown, User, Target, CreditCard, PenTool, AlignLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -18,7 +18,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   selectedScheduleId: initialSelectedScheduleId = null,
   onClose 
 }) => {
-  const { contributors, schedules, recordPayment } = useJumuika();
+  const { contributors, schedules, recordPayment } = useLocoo();
   const { t } = useTranslation();
   
   // Selection states

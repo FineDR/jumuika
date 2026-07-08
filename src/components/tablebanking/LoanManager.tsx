@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
-import type { Loan } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
+import type { Loan } from '../../context/LocooContext';
 import {
   Landmark, Plus, Wallet, TrendingUp, AlertCircle,
   CheckCircle2, Clock, Trash2, Users, RefreshCw
@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 export const LoanManager: React.FC = () => {
   const { t } = useTranslation();
-  const { loans, loansError, contributors, payments, payouts, currentEventId, events, deleteLoan } = useJumuika();
+  const { loans, loansError, contributors, payments, payouts, currentEventId, events, deleteLoan } = useLocoo();
 
   const [isIssueLoanOpen, setIsIssueLoanOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);

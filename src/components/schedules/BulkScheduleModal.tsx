@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { X, Users, DollarSign, Calendar, AlignLeft, Repeat, Hash } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/Button';
@@ -18,7 +18,7 @@ const FREQUENCY_OPTIONS = [
 ];
 
 export const BulkScheduleModal: React.FC<BulkScheduleModalProps> = ({ isOpen, onClose }) => {
-  const { bulkScheduleAll, contributors, currentEventId, events } = useJumuika();
+  const { bulkScheduleAll, contributors, currentEventId, events } = useLocoo();
 
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState(new Date().toLocaleDateString('en-CA'));

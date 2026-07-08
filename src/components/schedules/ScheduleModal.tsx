@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { generateInstallmentDates } from '../../utils/schedules';
 import { X, Calendar, AlignLeft, Target, Hash, Repeat } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -11,7 +11,7 @@ interface ScheduleModalProps {
 }
 
 export const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, contributorId, onClose }) => {
-  const { currentEventId, events, contributors, addSchedule, schedules } = useJumuika();
+  const { currentEventId, events, contributors, addSchedule, schedules } = useLocoo();
   const [activeOption, setActiveOption] = useState<'one-time' | 'installment'>('one-time');
 
   // Track existing unpaid schedules

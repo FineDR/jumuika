@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useJumuika } from '../../context/JumuikaContext';
+import { useLocoo } from '../../context/LocooContext';
 import { Search, User, Receipt, FileDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 
 export const PaymentsLog: React.FC = () => {
-  const { payments, contributors, events, currentEventId } = useJumuika();
+  const { payments, contributors, events, currentEventId } = useLocoo();
   const [searchQuery, setSearchQuery] = useState('');
   const [timePeriod, setTimePeriod] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [startDate, setStartDate] = useState('');
@@ -14,7 +14,7 @@ export const PaymentsLog: React.FC = () => {
 
   // Find active event name
   const activeEvent = events.find(e => e.id === currentEventId);
-  const activeEventName = activeEvent ? activeEvent.name : 'Jumuika';
+  const activeEventName = activeEvent ? activeEvent.name : 'Locoo';
 
   // Helper to map contributor name
   const getContributorName = (contributorId: string) => {
@@ -353,7 +353,7 @@ export const PaymentsLog: React.FC = () => {
           </table>
           
           <div class="footer">
-            Generated automatically by Jumuika Scheduled Contribution Engine.
+            Generated automatically by Locoo Scheduled Contribution Engine.
           </div>
           
           <script>

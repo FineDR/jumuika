@@ -11,7 +11,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('jumuika-theme');
+    const savedTheme = localStorage.getItem('locoo-theme');
     if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
@@ -19,7 +19,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   useEffect(() => {
-    localStorage.setItem('jumuika-theme', theme);
+    localStorage.setItem('locoo-theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
