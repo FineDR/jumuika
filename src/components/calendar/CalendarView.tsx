@@ -12,7 +12,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   // Month navigation
   const handlePrevMonth = () => {
@@ -25,18 +25,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
 
   const monthNames = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(2000, i, 1);
-      return d.toLocaleDateString(i18n.language, { month: 'long' });
+      const defaultName = new Date(2000, i, 1).toLocaleDateString('en', { month: 'long' });
+      return t(`calendar_view.months.${i}`, defaultName);
     });
-  }, [i18n.language]);
+  }, [t]);
 
   const weekdayNames = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
       // 2000-01-02 is a Sunday
-      const d = new Date(2000, 0, 2 + i);
-      return d.toLocaleDateString(i18n.language, { weekday: 'short' });
+      const defaultName = new Date(2000, 0, 2 + i).toLocaleDateString('en', { weekday: 'short' });
+      return t(`calendar_view.weekdays.${i}`, defaultName);
     });
-  }, [i18n.language]);
+  }, [t]);
 
   // Calendar Math
   const year = currentDate.getFullYear();
@@ -162,7 +162,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ onSelectContributorI
             <div className="flex justify-between items-start p-4 sm:p-6 border-b border-border/50 bg-foreground/[0.02]">
               <div className="flex flex-col gap-1 min-w-0">
                 <h3 className="font-heading text-lg sm:text-xl font-bold text-foreground truncate">
-                  {new Date(selectedDate).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {(() => {
+                    const d = new Date(selectedDate);
+                    const dayNum = d.getDate();
+                    const monthIdx = d.getMonth();
+                    const yearNum = d.getFullYear();
+                    const monthName = t(`calendar_view.months.${monthIdx}`);
+                    return `${dayNum} ${monthName} ${yearNum}`;
+                  })()}
                 </h3>
                 <span className="text-xs sm:text-sm text-muted truncate">
                   {t('calendar_view.total_expected')} <strong className="text-foreground">{selectedDateTotalDue.toLocaleString()} TZS</strong>

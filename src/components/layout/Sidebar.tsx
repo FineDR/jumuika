@@ -37,10 +37,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'dashboard', label: t('dashboard', 'Dashboard'), icon: LayoutDashboard },
     { id: 'contributors', label: t('contributors', 'Contributors'), icon: Users },
     ...(currentEvent?.eventType === 'merry-go-round'
-      ? [{ id: 'rotation', label: 'Rotation', icon: RefreshCw }]
+      ? [{ id: 'rotation', label: t('rotation', 'Rotation'), icon: RefreshCw }]
       : []),
     ...(currentEvent?.eventType === 'table-banking'
-      ? [{ id: 'loans', label: 'Loan Book', icon: Landmark }]
+      ? [{ id: 'loans', label: t('table_banking.loan_book', 'Loan Book'), icon: Landmark }]
       : []),
     { id: 'calendar', label: t('calendar', 'Calendar View'), icon: Calendar },
     { id: 'payments', label: t('payments', 'Payments Log'), icon: Receipt },
@@ -75,22 +75,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
 
       <div className="mt-2 relative shrink-0">
-        <span className="text-[10px] xs:text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">Active Event</span>
+        <span className="text-[10px] xs:text-xs uppercase text-muted tracking-widest font-semibold mb-2 block">{t('active_event', 'Active Event')}</span>
         <button
           className="w-full p-2.5 xs:p-3 bg-foreground/5 hover:bg-secondary/10 border border-border hover:border-secondary rounded-md text-foreground font-semibold text-xs xs:text-sm flex items-center justify-between cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus active:scale-[0.98]"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
           <span className="flex flex-col items-start gap-0.5 min-w-0 pr-2">
-            <span className="truncate w-full block text-left text-xs xs:text-sm font-semibold">{currentEvent ? currentEvent.name : 'Select Event'}</span>
+            <span className="truncate w-full block text-left text-xs xs:text-sm font-semibold">{currentEvent ? currentEvent.name : t('settings_page.no_active_event', 'Select Event')}</span>
             {currentEvent && (
               <span className={`text-[8px] xs:text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-full ${
                 currentEvent.eventType === 'merry-go-round' ? 'bg-violet-500/15 text-violet-400'
                 : currentEvent.eventType === 'table-banking' ? 'bg-sky-500/15 text-sky-400'
                 : 'bg-emerald-500/15 text-emerald-400'
               }`}>
-                {currentEvent.eventType === 'merry-go-round' ? 'Merry-Go-Round'
-                  : currentEvent.eventType === 'table-banking' ? 'Table Banking'
-                  : 'Harambee'}
+                {currentEvent.eventType === 'merry-go-round' ? t('events_modal.merry_go_round', 'Merry-Go-Round')
+                  : currentEvent.eventType === 'table-banking' ? t('table_banking.title', 'Table Banking')
+                  : t('events_modal.harambee', 'Harambee')}
               </span>
             )}
           </span>
@@ -101,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-md mt-1 z-30 shadow-lg p-2 flex flex-col gap-2 max-h-60 overflow-y-auto overflow-x-hidden animate-drop-in">
             <input
               type="text"
-              placeholder="Search event..."
+              placeholder={`${t('search', 'Search')}...`}
               className="w-full p-2 bg-background border border-border rounded text-[11px] xs:text-xs text-foreground focus:outline-none focus:border-secondary"
               value={eventSearch}
               onChange={(e) => setEventSearch(e.target.value)}
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
             <div className="flex flex-col max-h-40 overflow-y-auto">
               {filteredEvents.length === 0 ? (
-                <div className="text-[11px] xs:text-xs text-muted p-2">No events found</div>
+                <div className="text-[11px] xs:text-xs text-muted p-2">{t('common.no_events', 'No events found')}</div>
               ) : (
                 filteredEvents.map((e) => (
                   <button
@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="w-full p-2 bg-secondary/5 hover:bg-secondary/10 border-t border-border text-left text-secondary text-[11px] xs:text-xs font-semibold cursor-pointer flex items-center gap-2 transition-colors duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Plus size={14} />
-              Create New Event
+              {t('create_new_event', 'Create New Event')}
             </button>
           </div>
         )}
@@ -203,12 +203,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex flex-col gap-2.5 xs:gap-3 shrink-0">
         {user && (
           <div className="px-3 py-2.5 xs:px-4 xs:py-3 bg-foreground/5 hover:bg-foreground/10 hover:border-secondary/35 rounded-md border border-border text-muted flex flex-col gap-1 transition-all duration-fast group">
-            <span className="text-[8px] xs:text-[10px] uppercase tracking-wider font-semibold group-hover:text-secondary transition-colors">Active Organizer</span>
+            <span className="text-[8px] xs:text-[10px] uppercase tracking-wider font-semibold group-hover:text-secondary transition-colors">{t('active_organizer', 'Active Organizer')}</span>
             <span className="font-semibold text-foreground truncate text-xs xs:text-sm">
               {user.displayName || user.email}
             </span>
             <span className="text-[8px] xs:text-[9px] text-muted opacity-80 group-hover:opacity-100 transition-opacity">
-              {contributors.length} Members • {events.length} Events
+              {t('sidebar.status_summary', { membersCount: contributors.length, eventsCount: events.length, defaultValue: '{{membersCount}} Members • {{eventsCount}} Events' })}
             </span>
           </div>
         )}
@@ -219,13 +219,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="w-full flex items-center gap-3 px-3 py-2.5 xs:px-4 xs:py-3 bg-danger/5 hover:bg-danger/10 border border-danger/20 hover:border-danger/30 rounded-md text-danger font-semibold text-xs xs:text-sm cursor-pointer transition-all duration-fast focus:outline-none focus-visible:ring-2 focus-visible:ring-danger active:scale-[0.98]"
         >
           <LogOut size={16} className="shrink-0" />
-          <span>Log Out</span>
+          <span>{t('logout', 'Log Out')}</span>
         </button>
       </div>
 
       <div className="text-[10px] xs:text-xs text-muted text-center mt-1 xs:mt-2 shrink-0">
-        <p className="font-medium">© 2026 Locoo App</p>
-        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">Locoo Contributions Suite</p>
+        <p className="font-medium">{t('copyright', '© 2026 Locoo App')}</p>
+        <p className="text-[8px] xs:text-[10px] mt-1 opacity-80">{t('app_suite', 'Locoo Contributions Suite')}</p>
       </div>
     </aside>
     </>

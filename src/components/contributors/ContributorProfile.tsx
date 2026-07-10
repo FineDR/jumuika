@@ -134,7 +134,7 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 lg:gap-8 items-start">
         {/* Left Side: Summary Card */}
-        <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm sticky top-24">
+        <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm lg:sticky lg:top-24">
           <div className="flex items-center gap-5 mb-6">
             <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-secondary to-primary/80 text-white font-heading font-bold text-2xl shadow-inner">
               {contributor.fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
@@ -277,7 +277,14 @@ export const ContributorProfile: React.FC<ContributorProfileProps> = ({
                       <div className="flex flex-col gap-1.5">
                         <div className="flex flex-wrap items-center gap-3">
                           <span className="font-heading font-bold text-lg text-foreground">
-                            {new Date(schedule.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {(() => {
+                              const d = new Date(schedule.dueDate);
+                              const dayNum = d.getDate();
+                              const monthIdx = d.getMonth();
+                              const yearNum = d.getFullYear();
+                              const shortMonthName = t(`calendar_view.months_short.${monthIdx}`);
+                              return `${dayNum} ${shortMonthName} ${yearNum}`;
+                            })()}
                           </span>
                           <span className="text-xs font-semibold px-2 py-1 bg-foreground/5 text-muted rounded-md uppercase tracking-wider">
                             {schedule.frequency === 'one-time' ? t('profile.one_time') : `${t('profile.inst')} ${schedule.installmentNumber}`}

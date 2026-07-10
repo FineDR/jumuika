@@ -208,8 +208,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center gap-3 px-4 py-3 bg-danger/8 border border-danger/20 rounded-xl">
               <AlertCircle size={16} className="text-danger shrink-0" />
               <p className="text-sm font-semibold text-danger flex-1">
-                {overdueSchedules.length} installment{overdueSchedules.length > 1 ? 's are' : ' is'} overdue —{' '}
-                <span className="font-bold">{overdueSchedules.reduce((s, x) => s + x.remainingAmount, 0).toLocaleString()} TZS</span> uncollected
+                {t('dashboard_alerts.installments_overdue', {
+                  count: overdueSchedules.length,
+                  amount: overdueSchedules.reduce((s, x) => s + x.remainingAmount, 0).toLocaleString(),
+                  defaultValue: '{{count}} installment(s) overdue — {{amount}} TZS uncollected'
+                })}
               </p>
             </div>
           )}
@@ -217,8 +220,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center gap-3 px-4 py-3 bg-violet-500/8 border border-violet-500/20 rounded-xl">
               <RefreshCw size={16} className="text-violet-400 shrink-0 animate-spin-slow" />
               <p className="text-sm font-semibold text-violet-400 flex-1">
-                Pool ready for payout —{' '}
-                <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span> available to disburse{nextMemberName && nextMemberName !== 'None' ? <> to <span className="underline font-bold">{nextMemberName}</span></> : ' to the next member'}
+                {nextMemberName && nextMemberName !== 'None' ? (
+                  t('dashboard_alerts.pool_ready_payout_member', {
+                    amount: currentPoolBalance.toLocaleString(),
+                    member: nextMemberName,
+                    defaultValue: 'Pool ready for payout — {{amount}} TZS available to disburse to {{member}}'
+                  })
+                ) : (
+                  t('dashboard_alerts.pool_ready_payout', {
+                    amount: currentPoolBalance.toLocaleString(),
+                    defaultValue: 'Pool ready for payout — {{amount}} TZS available to disburse'
+                  })
+                )}
               </p>
             </div>
           )}
@@ -227,17 +240,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Landmark size={16} className="text-sky-400 shrink-0 mt-0.5" />
               <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
                 <p className="text-sm font-semibold text-sky-400">
-                  Pool Balance: <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span>
+                  {t('table_banking.available_pool', 'Pool Balance')}: <span className="font-bold">{currentPoolBalance.toLocaleString()} TZS</span>
                 </p>
                 <p className="text-sm font-semibold text-foreground/70">
-                  Active Loans: <span className="font-bold text-foreground">{tbMetrics.activeLoansCount}</span>
+                  {t('dashboard_alerts.active_loans', {
+                    count: tbMetrics.activeLoansCount,
+                    defaultValue: 'Active Loans: {{count}}'
+                  })}
                 </p>
                 <p className="text-sm font-semibold text-success">
-                  Interest Earned: <span className="font-bold">{tbMetrics.interestEarned.toLocaleString()} TZS</span>
+                  {t('table_banking.interest_earned', 'Interest Earned')}: <span className="font-bold">{tbMetrics.interestEarned.toLocaleString()} TZS</span>
                 </p>
                 {tbMetrics.defaultedCount > 0 && (
                   <p className="text-sm font-bold text-danger">
-                    ⚠ {tbMetrics.defaultedCount} defaulted loan{tbMetrics.defaultedCount > 1 ? 's' : ''}
+                    {t('dashboard_alerts.defaulted_loans_warning', {
+                      count: tbMetrics.defaultedCount,
+                      defaultValue: '⚠ {{count}} defaulted loan(s)'
+                    })}
                   </p>
                 )}
               </div>
@@ -332,7 +351,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {recentPayments.map((payment, i) => {
                   const paymentDate = payment.createdAt?.seconds 
                     ? new Date(payment.createdAt.seconds * 1000).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
-                    : 'Just now';
+                    : t('common.just_now', 'Just now');
                   return (
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
@@ -412,10 +431,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
             <h3 className="font-heading text-lg font-bold flex items-center gap-2 mb-4 text-danger">
               <AlertCircle size={18} />
-              Needs Attention
+              {t('dashboard_alerts.needs_attention', 'Needs Attention')}
             </h3>
             {overdueSchedules.length === 0 ? (
-              <p className="text-sm text-muted">No overdue payments. Great job!</p>
+              <p className="text-sm text-muted">{t('dashboard_alerts.no_overdue', 'No overdue payments. Great job!')}</p>
             ) : (
               <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
                 {overdueSchedules.slice(0, 5).map(schedule => (
@@ -429,13 +448,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className="text-xs font-bold text-danger shrink-0">{schedule.remainingAmount.toLocaleString()} TZS</span>
                     </div>
                     <div className="flex justify-between items-center text-xs text-muted">
-                      <span>Due: {schedule.dueDate}</span>
+                      <span>{t('profile.due', 'Due:')} {schedule.dueDate}</span>
                       <ArrowRight size={14} className="text-danger opacity-50" />
                     </div>
                   </div>
                 ))}
                 {overdueSchedules.length > 5 && (
-                  <p className="text-xs text-center text-muted font-medium pt-2">+{overdueSchedules.length - 5} more overdue</p>
+                  <p className="text-xs text-center text-muted font-medium pt-2">{t('dashboard_alerts.more_overdue', { count: overdueSchedules.length - 5, defaultValue: '+{{count}} more overdue' })}</p>
                 )}
               </div>
             )}
@@ -445,10 +464,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
             <h3 className="font-heading text-lg font-bold flex items-center gap-2 mb-4 text-foreground">
               <Calendar size={18} className="text-info" />
-              Upcoming
+              {t('status.upcoming', 'Upcoming')}
             </h3>
             {upcomingSchedules.length === 0 ? (
-              <p className="text-sm text-muted">No upcoming schedules.</p>
+              <p className="text-sm text-muted">{t('dashboard_alerts.no_upcoming', 'No upcoming schedules.')}</p>
             ) : (
               <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
                 {upcomingSchedules.slice(0, 5).map(schedule => (
@@ -468,7 +487,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 ))}
                 {upcomingSchedules.length > 5 && (
-                  <p className="text-xs text-center text-muted font-medium pt-2">+{upcomingSchedules.length - 5} more upcoming</p>
+                  <p className="text-xs text-center text-muted font-medium pt-2">{t('dashboard_alerts.more_upcoming', { count: upcomingSchedules.length - 5, defaultValue: '+{{count}} more upcoming' })}</p>
                 )}
               </div>
             )}

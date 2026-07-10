@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { LocooProvider, useLocoo } from './context/LocooContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -25,11 +26,12 @@ import { Settings } from './components/settings/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background text-muted text-xl font-heading">
-        Verifying authorization...
+        {t('verifying_auth')}
       </div>
     );
   }
@@ -42,7 +44,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
-  const { loading, contributors } = useLocoo();
+  const { loading, contributors, events, currentEventId } = useLocoo();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [selectedContributorId, setSelectedContributorId] = useState<string | null>(null);
 
@@ -54,6 +57,8 @@ function AppContent() {
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isEventOpen, setIsEventOpen] = useState(false);
   
+  const currentEvent = events.find(e => e.id === currentEventId);
+
   // Mobile drawer state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -151,10 +156,10 @@ function AppContent() {
         return <PaymentsLog />;
       case 'rotation':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 animate-fade-in">
             <div>
-              <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground">Rotation Order</h2>
-              <p className="text-sm text-muted mt-1">Set the payout cycle for this Merry-Go-Round event</p>
+              <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground">{t('rotation_manager.rotation_order', 'Rotation Order')}</h2>
+              <p className="text-sm text-muted mt-1">{t('rotation_manager.subtitle', 'Set the payout cycle for this Merry-Go-Round event')}</p>
             </div>
             <RotationManager
               isOpen={true}
@@ -247,31 +252,46 @@ function AppContent() {
           renderActiveView()
         )}
         </div>
-      </main>
-
-      {/* Mobile Bottom Navigation Bar */}
+      </main>      {/* Mobile Bottom Navigation Bar */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-t border-border safe-area-inset-bottom">
         <div className="flex items-stretch h-16">
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: (
+            { id: 'dashboard', label: t('dashboard', 'Dashboard'), icon: (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
               </svg>
             )},
-            { id: 'contributors', label: 'Members', icon: (
+            { id: 'contributors', label: t('contributors', 'Members'), icon: (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
             )},
-            { id: 'calendar', label: 'Calendar', icon: (
+            ...(currentEvent?.eventType === 'merry-go-round'
+              ? [{ id: 'rotation', label: t('rotation', 'Rotation'), icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+              )}]
+              : []),
+            ...(currentEvent?.eventType === 'table-banking'
+              ? [{ id: 'loans', label: t('table_banking.loans', 'Loans'), icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  <polyline points="5 6 12 3 19 6"/><line x1="4" y1="10" x2="4" y2="21"/>
+                  <line x1="20" y1="10" x2="20" y2="21"/><line x1="8" y1="14" x2="8" y2="17"/>
+                  <line x1="12" y1="14" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/>
+                </svg>
+              )}]
+              : []),
+            { id: 'calendar', label: t('calendar_view.title', 'Calendar'), icon: (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
                 <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
             )},
-            { id: 'payments', label: 'Payments', icon: (
+            { id: 'payments', label: t('payments', 'Payments'), icon: (
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
               </svg>
@@ -342,20 +362,20 @@ function AppContent() {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
             </div>
             <p className="text-sm font-semibold text-foreground flex-1 leading-snug">
-              Member added! Set up their contribution schedule now?
+              {t('prompt.member_added_schedule')}
             </p>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setPendingSchedulePromptId(null)}
-                className="text-xs font-semibold text-muted hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all"
+                className="text-xs font-semibold text-muted hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-foreground/5 transition-all animate-fade-in"
               >
-                Skip
+                {t('common.skip', 'Skip')}
               </button>
               <button
                 onClick={handlePromptYes}
-                className="text-xs font-bold text-secondary-foreground bg-secondary hover:bg-secondary/90 px-3 py-1.5 rounded-lg transition-all"
+                className="text-xs font-bold bg-secondary text-secondary-foreground hover:opacity-95 px-3 py-1.5 rounded-lg shadow-sm transition-all animate-fade-in"
               >
-                Yes, Set Up →
+                {t('prompt.yes_setup')}
               </button>
             </div>
           </div>

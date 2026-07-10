@@ -41,7 +41,44 @@ const resources = {
         "due": "Due",
         "total_expected": "Total expected collection:",
         "one_time": "One-time",
-        "installment": "Installment"
+        "installment": "Installment",
+        "months": {
+          "0": "January",
+          "1": "February",
+          "2": "March",
+          "3": "April",
+          "4": "May",
+          "5": "June",
+          "6": "July",
+          "7": "August",
+          "8": "September",
+          "9": "October",
+          "10": "November",
+          "11": "December"
+        },
+        "weekdays": {
+          "0": "Sun",
+          "1": "Mon",
+          "2": "Tue",
+          "3": "Wed",
+          "4": "Thu",
+          "5": "Fri",
+          "6": "Sat"
+        },
+        "months_short": {
+          "0": "Jan",
+          "1": "Feb",
+          "2": "Mar",
+          "3": "Apr",
+          "4": "May",
+          "5": "Jun",
+          "6": "Jul",
+          "7": "Aug",
+          "8": "Sep",
+          "9": "Oct",
+          "10": "Nov",
+          "11": "Dec"
+        }
       },
       "payments_page": {
         "title": "Payments Log",
@@ -160,6 +197,7 @@ const resources = {
       },
       "dashboard": "Dashboard",
       "contributors": "Contributors",
+      "calendar": "Calendar View",
       "payments": "Payments",
       "events": "Events",
       "settings": "Settings",
@@ -298,6 +336,72 @@ const resources = {
           "tagline": "Modern Event & Contributor Management",
           "privacy": "Privacy"
         }
+      },
+      "rotation": "Rotation",
+      "active_event": "Active Event",
+      "create_new_event": "Create New Event",
+      "active_organizer": "Active Organizer",
+      "copyright": "© 2026 Locoo App",
+      "app_suite": "Locoo Contributions Suite",
+      "verifying_auth": "Verifying authorization...",
+      "sidebar": {
+        "status_summary": "{{membersCount}} Members • {{eventsCount}} Events"
+      },
+      "common": {
+        "all": "All",
+        "skip": "Skip",
+        "just_now": "Just now"
+      },
+      "prompt": {
+        "member_added_schedule": "Member added! Set up their contribution schedule now?",
+        "yes_setup": "Yes, Set Up →"
+      },
+      "dashboard_alerts": {
+        "installments_overdue": "{{count}} installment(s) overdue — {{amount}} TZS uncollected",
+        "pool_ready_payout": "Pool ready for payout — {{amount}} TZS available to disburse",
+        "pool_ready_payout_member": "Pool ready for payout — {{amount}} TZS available to disburse to {{member}}",
+        "active_loans": "Active Loans: {{count}}",
+        "defaulted_loans_warning": "⚠ {{count}} defaulted loan(s)",
+        "needs_attention": "Needs Attention",
+        "no_overdue": "No overdue payments. Great job!",
+        "more_overdue": "+{{count}} more overdue",
+        "no_upcoming": "No upcoming schedules.",
+        "more_upcoming": "+{{count}} more upcoming"
+      },
+      "rotation_manager": {
+        "title": "Rotation Manager",
+        "cycle": "Cycle",
+        "cycle_progress": "Cycle {{cycle}} Progress",
+        "paid_out": "paid out",
+        "next_payout": "Next Payout",
+        "pay_now": "Pay Now →",
+        "instructions": "Drag or use arrows to set who receives the pool each month.",
+        "not_received": "Not yet received",
+        "received_count_one": "Received {{count}} time",
+        "received_count_other": "Received {{count}} times",
+        "next_badge": "NEXT",
+        "total_cycles_completed": "Total cycles completed:",
+        "save_order": "Save Order",
+        "instructions_empty": "Add contributors first, then set up the rotation order.",
+        "success_save": "Rotation order saved!",
+        "failed_save": "Failed to save rotation order",
+        "move_up": "Move up",
+        "move_down": "Move down",
+        "rotation_order": "Rotation Order",
+        "subtitle": "Set the payout cycle for this Merry-Go-Round event"
+      },
+      "payout_modal": {
+        "title": "Record Payout",
+        "paying_to": "Paying out to:",
+        "available_pool": "Available Pool Balance:",
+        "already_paid_title": "Already Received Turn",
+        "already_paid_desc": "This member has already received their payout in the current cycle.",
+        "out_of_turn_title": "Out of Turn Payout",
+        "out_of_turn_desc": "The next member scheduled in rotation order is {{member}}.",
+        "amount_label": "Amount (TZS) *",
+        "date_label": "Payout Date *",
+        "notes_label": "Notes",
+        "recording": "Recording..."
       }
     }
   },
@@ -339,7 +443,44 @@ const resources = {
         "due": "Zinazotakiwa",
         "total_expected": "Jumla ya makusanyo yanayotarajiwa:",
         "one_time": "Mara Moja",
-        "installment": "Awamu"
+        "installment": "Awamu",
+        "months": {
+          "0": "Januari",
+          "1": "Februari",
+          "2": "Machi",
+          "3": "Aprili",
+          "4": "Mei",
+          "5": "Juni",
+          "6": "Julai",
+          "7": "Agosti",
+          "8": "Septemba",
+          "9": "Oktoba",
+          "10": "Novemba",
+          "11": "Disemba"
+        },
+        "weekdays": {
+          "0": "Jpi",
+          "1": "Jtatu",
+          "2": "Jne",
+          "3": "Jtano",
+          "4": "Alh",
+          "5": "Iju",
+          "6": "Jmosi"
+        },
+        "months_short": {
+          "0": "Jan",
+          "1": "Feb",
+          "2": "Mac",
+          "3": "Apr",
+          "4": "Mei",
+          "5": "Jun",
+          "6": "Jul",
+          "7": "Ago",
+          "8": "Sep",
+          "9": "Okt",
+          "10": "Nov",
+          "11": "Des"
+        }
       },
       "payments_page": {
         "title": "Kumbukumbu ya Malipo",
@@ -458,6 +599,7 @@ const resources = {
       },
       "dashboard": "Dashibodi",
       "contributors": "Wachangiaji",
+      "calendar": "Kalenda",
       "payments": "Malipo",
       "events": "Matukio",
       "settings": "Mipangilio",
@@ -596,6 +738,72 @@ const resources = {
           "tagline": "Usimamizi wa Kisasa wa Matukio na Wachangiaji",
           "privacy": "Faragha"
         }
+      },
+      "rotation": "Mzunguko",
+      "active_event": "Tukio Hai",
+      "create_new_event": "Unda Tukio Jipya",
+      "active_organizer": "Mratibu Hai",
+      "copyright": "© 2026 Locoo App",
+      "app_suite": "Mfumo wa Michango wa Locoo",
+      "verifying_auth": "Kuthibitisha mamlaka...",
+      "sidebar": {
+        "status_summary": "Wanachama {{membersCount}} • Matukio {{eventsCount}}"
+      },
+      "common": {
+        "all": "Wote",
+        "skip": "Ruka",
+        "just_now": "Sasa hivi"
+      },
+      "prompt": {
+        "member_added_schedule": "Mchangiaji amesajiliwa! Panga ratiba ya michango yake sasa?",
+        "yes_setup": "Ndio, Panga Ratiba →"
+      },
+      "dashboard_alerts": {
+        "installments_overdue": "awamu {{count}} zimechelewa — {{amount}} TZS hazijakusanywa",
+        "pool_ready_payout": "Mfuko uko tayari kulipwa — {{amount}} TZS zinapatikana kutoa",
+        "pool_ready_payout_member": "Mfuko uko tayari kulipwa — {{amount}} TZS zinapatikana kumpa {{member}}",
+        "active_loans": "Mikopo Hai: {{count}}",
+        "defaulted_loans_warning": "⚠ mikopo {{count}} iliyoshindwa kulipwa",
+        "needs_attention": "Inahitaji Uangalizi",
+        "no_overdue": "Hakuna malipo yaliyochelewa. Kazi nzuri!",
+        "more_overdue": "+{{count}} zaidi zimechelewa",
+        "no_upcoming": "Hakuna ratiba zinazokuja.",
+        "more_upcoming": "+{{count}} zaidi zinakuja"
+      },
+      "rotation_manager": {
+        "title": "Usimamizi wa Mzunguko",
+        "cycle": "Mzunguko",
+        "cycle_progress": "Maendeleo ya Mzunguko wa {{cycle}}",
+        "paid_out": "imelipwa",
+        "next_payout": "Zamu Inayofuata",
+        "pay_now": "Lipa Sasa →",
+        "instructions": "Vuta au tumia mishale kupanga nani anapokea mfuko kila mwezi.",
+        "not_received": "Bado hajapokea",
+        "received_count_one": "Amepokea mara {{count}}",
+        "received_count_other": "Amepokea mara {{count}}",
+        "next_badge": "INAYOFUATA",
+        "total_cycles_completed": "Jumla ya mizunguko iliyokamilika:",
+        "save_order": "Hifadhi Mzunguko",
+        "instructions_empty": "Weka wanachama kwanza, kisha upange mzunguko.",
+        "success_save": "Mzunguko umehifadhiwa!",
+        "failed_save": "Imeshindwa kuhifadhi mzunguko",
+        "move_up": "Sogeza juu",
+        "move_down": "Sogeza chini",
+        "rotation_order": "Mpangilio wa Mzunguko",
+        "subtitle": "Weka mzunguko wa malipo kwa tukio hili la Mzunguko (Merry-Go-Round)"
+      },
+      "payout_modal": {
+        "title": "Rekodi Malipo ya Kutoka",
+        "paying_to": "Kulipa kwa:",
+        "available_pool": "Salio la Mfuko Lililopo:",
+        "already_paid_title": "Tayari Ameshapokea Awamu",
+        "already_paid_desc": "Mwanachama huyu ameshapokea malipo yake katika mzunguko wa sasa.",
+        "out_of_turn_title": "Malipo Nje ya Zamu",
+        "out_of_turn_desc": "Mwanachama anayefuata katika mpangilio wa mzunguko ni {{member}}.",
+        "amount_label": "Kiasi (TZS) *",
+        "date_label": "Tarehe ya Kulipa *",
+        "notes_label": "Maelezo",
+        "recording": "Inarekodi..."
       }
     }
   }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocoo } from '../../context/LocooContext';
 import { X, Calendar, AlignLeft, DollarSign, Wallet, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -11,6 +12,7 @@ interface PayoutModalProps {
 }
 
 export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contributorId }) => {
+  const { t } = useTranslation();
   const { addPayout, contributors, payments, payouts, events, currentEventId } = useLocoo();
   const contributor = contributors.find(c => c.id === contributorId);
   
@@ -81,17 +83,17 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
     const numAmount = Number(amount);
     
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid amount');
+      setError(t('payout_modal.enter_valid_amount', 'Please enter a valid amount'));
       return;
     }
     
     if (numAmount > currentPoolBalance) {
-      setError(`Cannot payout more than the current pool balance (${currentPoolBalance.toLocaleString()} TZS)`);
+      setError(t('payout_modal.amount_exceeds_pool', { amount: currentPoolBalance.toLocaleString(), defaultValue: 'Cannot payout more than the current pool balance ({{amount}} TZS)' }));
       return;
     }
 
     if (!payoutDate) {
-      setError('Payout Date is required');
+      setError(t('payout_modal.date_required', 'Payout Date is required'));
       return;
     }
 
@@ -104,10 +106,10 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
         payoutDate,
         notes.trim()
       );
-      toast.success('Payout recorded successfully!');
+      toast.success(t('payout_modal.success_record', 'Payout recorded successfully!'));
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to record payout');
+      setError(err.message || t('payout_modal.failed_record', 'Failed to record payout'));
     } finally {
       setSaving(false);
     }
@@ -121,7 +123,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <Wallet size={16} />
             </div>
-            <h3 className="font-heading text-lg font-bold text-foreground">Record Payout</h3>
+            <h3 className="font-heading text-lg font-bold text-foreground">{t('payout_modal.title', 'Record Payout')}</h3>
           </div>
           <button 
             className="p-1.5 bg-foreground/5 hover:bg-foreground/10 text-muted hover:text-foreground rounded-full transition-all focus:outline-none" 
@@ -133,10 +135,10 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
 
         <div className="p-5 overflow-y-auto">
           <div className="bg-foreground/5 rounded-xl p-4 mb-4 border border-border/50">
-            <p className="text-sm text-muted mb-1">Paying out to:</p>
+            <p className="text-sm text-muted mb-1">{t('payout_modal.paying_to', 'Paying out to:')}</p>
             <p className="font-bold text-foreground text-lg">{contributor.fullName}</p>
             <div className="mt-2 flex justify-between items-center text-sm border-t border-border/50 pt-2">
-              <span className="text-muted">Available Pool Balance:</span>
+              <span className="text-muted">{t('payout_modal.available_pool', 'Available Pool Balance:')}</span>
               <span className="font-bold text-success">{currentPoolBalance.toLocaleString()} TZS</span>
             </div>
           </div>
@@ -145,8 +147,8 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
             <div className="mb-4 flex items-start gap-2.5 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-xl">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold">Already Received Turn</p>
-                <p className="font-normal opacity-90 mt-0.5">This member has already received their payout in the current cycle.</p>
+                <p className="font-bold">{t('payout_modal.already_paid_title', 'Already Received Turn')}</p>
+                <p className="font-normal opacity-90 mt-0.5">{t('payout_modal.already_paid_desc', 'This member has already received their payout in the current cycle.')}</p>
               </div>
             </div>
           )}
@@ -155,8 +157,8 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
             <div className="mb-4 flex items-start gap-2.5 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-xl">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold">Out of Turn Payout</p>
-                <p className="font-normal opacity-90 mt-0.5">The next member scheduled in rotation order is <span className="underline font-semibold">{nextMemberName}</span>.</p>
+                <p className="font-bold">{t('payout_modal.out_of_turn_title', 'Out of Turn Payout')}</p>
+                <p className="font-normal opacity-90 mt-0.5">{t('payout_modal.out_of_turn_desc', { member: nextMemberName, defaultValue: 'The next member scheduled in rotation order is {{member}}.' })}</p>
               </div>
             </div>
           )}
@@ -169,7 +171,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutAmount">Amount (TZS) *</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutAmount">{t('payout_modal.amount_label', 'Amount (TZS) *')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <DollarSign size={16} />
@@ -188,7 +190,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutDate">Payout Date *</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutDate">{t('payout_modal.date_label', 'Payout Date *')}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted">
                   <Calendar size={16} />
@@ -206,7 +208,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutNotes">Notes</label>
+              <label className="text-xs font-semibold text-muted uppercase tracking-wider" htmlFor="payoutNotes">{t('payout_modal.notes_label', 'Notes')}</label>
               <div className="relative">
                 <div className="absolute top-3 left-3 pointer-events-none text-muted">
                   <AlignLeft size={16} />
@@ -230,7 +232,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
                 disabled={saving}
                 className="px-4 py-2 text-sm"
               >
-                Cancel
+                {t('profile.cancel', 'Cancel')}
               </Button>
               <Button 
                 variant="primary"
@@ -238,7 +240,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, contr
                 isLoading={saving}
                 className="px-5 py-2 text-sm"
               >
-                {saving ? 'Recording...' : 'Record Payout'}
+                {saving ? t('payout_modal.recording', 'Recording...') : t('profile.record_payout', 'Record Payout')}
               </Button>
             </div>
           </form>

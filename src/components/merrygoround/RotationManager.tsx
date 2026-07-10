@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocoo } from '../../context/LocooContext';
 import {
   X, ArrowUp, ArrowDown, RefreshCw, CheckCircle2,
@@ -20,6 +21,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
   onOpenPayoutModal,
   inlinePage = false,
 }) => {
+  const { t } = useTranslation();
   const {
     contributors,
     payouts,
@@ -95,9 +97,9 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
     setSaving(true);
     try {
       await setRotationOrder(order);
-      toast.success('Rotation order saved!');
+      toast.success(t('rotation_manager.success_save', 'Rotation order saved!'));
     } catch {
-      toast.error('Failed to save rotation order');
+      toast.error(t('rotation_manager.failed_save', 'Failed to save rotation order'));
     } finally {
       setSaving(false);
     }
@@ -113,11 +115,11 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
 
   if (eventContributors.length === 0) {
     const emptyContent = (
-      <div className="w-full max-w-[460px] bg-surface rounded-2xl border border-border/50 p-8 text-center flex flex-col items-center justify-center mx-auto">
+      <div className="w-full max-w-[460px] bg-surface rounded-2xl border border-border/50 p-8 text-center flex flex-col items-center justify-center mx-auto animate-scale-in">
         <Users size={40} className="text-muted mb-3" />
-        <p className="text-foreground font-semibold mb-1">No members yet</p>
-        <p className="text-muted text-sm mb-5">Add contributors first, then set up the rotation order.</p>
-        {!inlinePage && <Button onClick={onClose} variant="ghost">Close</Button>}
+        <p className="text-foreground font-semibold mb-1">{t('contributors_page.no_contributors', 'No members yet')}</p>
+        <p className="text-muted text-sm mb-5">{t('rotation_manager.instructions_empty', 'Add contributors first, then set up the rotation order.')}</p>
+        {!inlinePage && <Button onClick={onClose} variant="ghost">{t('profile.cancel', 'Close')}</Button>}
       </div>
     );
 
@@ -142,9 +144,9 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
               <RefreshCw size={18} className="text-violet-400" />
             </div>
             <div>
-              <h3 className="font-heading text-lg font-bold text-foreground">Rotation Manager</h3>
-              <p className="text-xs text-muted mt-0.5">
-                {currentEvent?.name} · Cycle {currentCycle}
+              <h3 className="font-heading text-lg font-bold text-foreground">{t('rotation_manager.title', 'Rotation Manager')}</h3>
+              <p className="text-xs text-muted mt-0.5 text-ellipsis overflow-hidden whitespace-nowrap">
+                {currentEvent?.name} · {t('rotation_manager.cycle', 'Cycle')} {currentCycle}
               </p>
             </div>
           </div>
@@ -162,10 +164,10 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
             <div className="flex flex-col flex-1 gap-1">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-violet-400 uppercase tracking-wider">
-                  Cycle {currentCycle} Progress
+                  {t('rotation_manager.cycle_progress', { cycle: currentCycle, defaultValue: 'Cycle {{cycle}} Progress' })}
                 </span>
                 <span className="text-xs font-bold text-violet-300">
-                  {payoutsThisCycle === 0 && totalPayouts > 0 ? cycleLength : payoutsThisCycle}/{cycleLength} paid out
+                  {payoutsThisCycle === 0 && totalPayouts > 0 ? cycleLength : payoutsThisCycle}/{cycleLength} {t('rotation_manager.paid_out', 'paid out')}
                 </span>
               </div>
               <div className="h-1.5 bg-violet-500/15 rounded-full overflow-hidden">
@@ -191,16 +193,16 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
                   {getName(nextMemberId).charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">Next Payout</p>
+                  <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">{t('rotation_manager.next_payout', 'Next Payout')}</p>
                   <p className="text-sm font-bold text-foreground">{getName(nextMemberId)}</p>
                 </div>
               </div>
               <Button
                 variant="primary"
-                className="text-xs px-3 py-1.5 gap-1.5 shrink-0"
+                className="text-xs px-3 py-1.5 gap-1.5 shrink-0 animate-fade-in"
                 onClick={handlePayoutNext}
               >
-                Pay Now →
+                {t('rotation_manager.pay_now', 'Pay Now →')}
               </Button>
             </div>
           </div>
@@ -210,7 +212,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
         <div className="px-4 pt-3">
           <p className="text-xs text-muted flex items-center gap-1.5">
             <ArrowUp size={11} className="shrink-0" />
-            Drag or use arrows to set who receives the pool each month.
+            {t('rotation_manager.instructions', 'Drag or use arrows to set who receives the pool each month.')}
           </p>
         </div>
 
@@ -258,8 +260,8 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
                   </p>
                   <p className="text-[10px] text-muted mt-0.5">
                     {cyclesReceived === 0
-                      ? 'Not yet received'
-                      : `Received ${cyclesReceived} time${cyclesReceived > 1 ? 's' : ''}`}
+                      ? t('rotation_manager.not_received', 'Not yet received')
+                      : t('rotation_manager.received_count', { count: cyclesReceived, defaultValue: 'Received {{count}} times' })}
                   </p>
                 </div>
 
@@ -267,7 +269,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
                 <div className="flex items-center gap-1 shrink-0">
                   {isNext && (
                     <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
-                      <Clock size={8} /> NEXT
+                      <Clock size={8} /> {t('rotation_manager.next_badge', 'NEXT')}
                     </span>
                   )}
                   {hasPaid && !isNext && (
@@ -287,7 +289,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
                     onClick={() => moveUp(index)}
                     disabled={index === 0}
                     className="p-1 rounded hover:bg-foreground/10 disabled:opacity-20 text-muted transition-all"
-                    title="Move up"
+                    title={t('rotation_manager.move_up', 'Move up')}
                   >
                     <ArrowUp size={13} />
                   </button>
@@ -295,7 +297,7 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
                     onClick={() => moveDown(index)}
                     disabled={index === order.length - 1}
                     className="p-1 rounded hover:bg-foreground/10 disabled:opacity-20 text-muted transition-all"
-                    title="Move down"
+                    title={t('rotation_manager.move_down', 'Move down')}
                   >
                     <ArrowDown size={13} />
                   </button>
@@ -308,14 +310,14 @@ export const RotationManager: React.FC<RotationManagerProps> = ({
         {/* Footer */}
         <div className="flex justify-between items-center gap-2 p-4 border-t border-border/50">
           <p className="text-[11px] text-muted">
-            Total cycles completed: <span className="font-bold text-foreground">{Math.floor(totalPayouts / (cycleLength || 1))}</span>
+            {t('rotation_manager.total_cycles_completed', 'Total cycles completed:')} <span className="font-bold text-foreground">{Math.floor(totalPayouts / (cycleLength || 1))}</span>
           </p>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose} className="px-4 py-2 text-sm" disabled={saving}>
-              Cancel
+              {t('profile.cancel', 'Cancel')}
             </Button>
             <Button variant="primary" onClick={handleSave} isLoading={saving} className="px-5 py-2 text-sm">
-              Save Order
+              {t('rotation_manager.save_order', 'Save Order')}
             </Button>
           </div>
         </div>

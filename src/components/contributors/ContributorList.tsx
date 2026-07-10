@@ -54,12 +54,12 @@ export const ContributorList: React.FC<ContributorListProps> = ({
           <h2 className="font-heading text-2xl xs:text-3xl lg:text-4xl font-extrabold text-foreground">{t('contributors_page.title')}</h2>
           <p className="text-xs sm:text-sm text-muted mt-1">{t('contributors_page.subtitle')}</p>
         </div>
-        <div className="flex flex-col xs:flex-row items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
           <Button
             onClick={onOpenBulkScheduleModal}
             variant="ghost"
             size="md"
-            className="gap-2 w-full xs:w-auto border border-border hover:border-secondary/50 justify-center cursor-pointer"
+            className="gap-2 w-full sm:w-auto border border-border hover:border-secondary/50 justify-center cursor-pointer"
             title="Schedule all members at once"
           >
             <CalendarClock size={16} />
@@ -68,7 +68,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
           <Button
             onClick={onOpenRegisterModal}
             size="md"
-            className="gap-2 w-full xs:w-auto justify-center cursor-pointer"
+            className="gap-2 w-full sm:w-auto justify-center cursor-pointer"
           >
             <Plus size={16} />
             <span>{t('contributors_page.register')}</span>
@@ -78,7 +78,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
 
       {/* Filters */}
       <div className="bg-surface border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
-        <div className="flex flex-col xs:flex-row gap-3 mb-5 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-5 sm:mb-6">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4 pointer-events-none" />
             <input
@@ -90,7 +90,7 @@ export const ContributorList: React.FC<ContributorListProps> = ({
             />
           </div>
           <select
-            className="w-full xs:w-[190px] p-2.5 bg-foreground/5 border border-border rounded-lg text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shrink-0"
+            className="w-full sm:w-[190px] p-2.5 bg-foreground/5 border border-border rounded-lg text-foreground text-sm transition-all focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 shrink-0"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
           >

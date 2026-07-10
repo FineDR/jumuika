@@ -81,7 +81,28 @@ interface LocooContextType {
   ) => Promise<string>;
   recordLoanRepayment: (loanId: string, amount: number, paymentMethod: string) => Promise<void>;
   deleteLoan: (loanId: string) => Promise<void>;
+  setupEventWizard: (
+    eventInfo: {
+      name: string;
+      eventType: 'harambee' | 'merry-go-round' | 'table-banking';
+      targetAmount?: number;
+    },
+    members: {
+      fullName: string;
+      phone?: string;
+      notes?: string;
+    }[],
+    scheduling?: {
+      type: 'one-time' | 'installment';
+      amount: number;
+      dueDateOrStartDate: string;
+      frequency?: string;
+      installmentsCount?: number;
+      notes?: string;
+    }
+  ) => Promise<string>;
 }
+
 
 const LocooContext = createContext<LocooContextType | undefined>(undefined);
 
@@ -236,6 +257,151 @@ export const LocooProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCurrentEventId(docRef.id);
     return docRef.id;
   };
+
+  const setupEventWizard = async (
+    eventInfo: {
+      name: string;
+      eventType: 'harambee' | 'merry-go-round' | 'table-banking';
+      targetAmount?: number;
+    },
+    members: {
+      fullName: string;
+      phone?: string;
+      notes?: string;
+    }[],
+    scheduling?: {
+      type: 'one-time' | 'installment';
+      amount: number;
+      dueDateOrStartDate: string;
+      frequency?: string;
+      installmentsCount?: number;
+      notes?: string;
+    }
+  ): Promise<string> => {
+    const eventDocRef = doc(collection(db, 'events'));
+    const eventId = eventDocRef.id;
+
+    const eventData: any = {
+      id: eventId,
+      name: eventInfo.name,
+      eventType: eventInfo.eventType,
+      createdAt: serverTimestamp()
+    };
+
+    if (eventInfo.targetAmount !== undefined && eventInfo.targetAmount > 0) {
+      eventData.targetAmount = eventInfo.targetAmount;
+    }
+
+    const batch = writeBatch(db);
+    
+    // Create contributors
+    const contributorIds: string[] = [];
+    const contributorDataList: any[] = [];
+
+    for (const member of members) {
+      const contributorDocRef = doc(collection(db, 'contributors'));
+      const cId = contributorDocRef.id;
+      contributorIds.push(cId);
+
+      const cData = {
+        id: cId,
+        eventId: eventId,
+        fullName: member.fullName,
+        phone: member.phone || '',
+        notes: member.notes || '',
+        totalScheduled: 0,
+        totalPaid: 0,
+        remainingBalance: 0,
+        createdAt: serverTimestamp()
+      };
+      
+      batch.set(contributorDocRef, cData);
+      contributorDataList.push(cData);
+    }
+
+    // Set rotation order for Merry Go Round if members exist
+    if (eventInfo.eventType === 'merry-go-round' && contributorIds.length > 0) {
+      eventData.rotationOrder = contributorIds;
+    }
+
+    // Now set event doc
+    batch.set(eventDocRef, eventData);
+
+    // Create schedules if configured
+    if (scheduling && scheduling.amount > 0 && contributorIds.length > 0) {
+      const { type, amount, dueDateOrStartDate, frequency = 'Monthly', installmentsCount = 1, notes = '' } = scheduling;
+
+      if (type === 'one-time') {
+        for (let idx = 0; idx < contributorIds.length; idx++) {
+          const cId = contributorIds[idx];
+          const scheduleRef = doc(collection(db, 'schedules'));
+          const status = calculateStatus(dueDateOrStartDate, amount, 0);
+
+          batch.set(scheduleRef, {
+            id: scheduleRef.id,
+            contributorId: cId,
+            eventId: eventId,
+            amount,
+            dueDate: dueDateOrStartDate,
+            frequency: 'one-time',
+            installmentNumber: 1,
+            status,
+            amountPaid: 0,
+            remainingAmount: amount,
+            notes: notes || 'Initial contribution setup',
+            createdAt: serverTimestamp()
+          });
+
+          contributorDataList[idx].totalScheduled = amount;
+          contributorDataList[idx].remainingBalance = amount;
+        }
+      } else {
+        // installments
+        const dates = generateInstallmentDates(dueDateOrStartDate, installmentsCount, frequency);
+        const baseAmount = Math.floor(amount / installmentsCount);
+        const remainder = amount - baseAmount * installmentsCount;
+
+        for (let idx = 0; idx < contributorIds.length; idx++) {
+          const cId = contributorIds[idx];
+
+          for (let i = 0; i < installmentsCount; i++) {
+            const scheduleRef = doc(collection(db, 'schedules'));
+            const installmentAmount = i === 0 ? baseAmount + remainder : baseAmount;
+            const status = calculateStatus(dates[i], installmentAmount, 0);
+
+            batch.set(scheduleRef, {
+              id: scheduleRef.id,
+              contributorId: cId,
+              eventId: eventId,
+              amount: installmentAmount,
+              dueDate: dates[i],
+              frequency,
+              installmentNumber: i + 1,
+              status,
+              amountPaid: 0,
+              remainingAmount: installmentAmount,
+              notes: notes ? `${notes} (Installment ${i + 1}/${installmentsCount})` : `Installment ${i + 1}/${installmentsCount}`,
+              createdAt: serverTimestamp()
+            });
+          }
+
+          contributorDataList[idx].totalScheduled = amount;
+          contributorDataList[idx].remainingBalance = amount;
+        }
+      }
+
+      // Re-write contributors with updated totals in the batch
+      for (let idx = 0; idx < contributorIds.length; idx++) {
+        const contributorDocRef = doc(db, 'contributors', contributorIds[idx]);
+        batch.set(contributorDocRef, contributorDataList[idx]);
+      }
+    }
+
+    await batch.commit();
+    setCurrentEventId(eventId);
+    return eventId;
+  };
+
 
   const addContributor = async (fullName: string, phone?: string, notes?: string, expectedAmount?: number): Promise<string> => {
     const docRef = doc(collection(db, 'contributors'));
@@ -854,6 +1020,7 @@ export const LocooProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       issueLoan,
       recordLoanRepayment,
       deleteLoan,
+      setupEventWizard,
     }}>
       {children}
     </LocooContext.Provider>

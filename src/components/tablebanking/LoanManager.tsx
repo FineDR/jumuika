@@ -66,17 +66,17 @@ export const LoanManager: React.FC = () => {
 
   const statusConfig: Record<Loan['status'], { label: string; classes: string; icon: React.ReactNode }> = {
     Active: {
-      label: t('status.upcoming'), // Actually active loan might need a different key but 'Active' in english
+      label: t('status.active', 'Active'),
       classes: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
       icon: <Clock size={10} />,
     },
     Completed: {
-      label: t('status.completed'),
+      label: t('status.completed', 'Completed'),
       classes: 'bg-success/10 text-success border-success/20',
       icon: <CheckCircle2 size={10} />,
     },
     Defaulted: {
-      label: t('status.overdue'), // Or add defaulted
+      label: t('status.defaulted', 'Defaulted'),
       classes: 'bg-danger/10 text-danger border-danger/20',
       icon: <AlertCircle size={10} />,
     },
@@ -109,11 +109,15 @@ export const LoanManager: React.FC = () => {
               <h2 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground">{t('table_banking.loan_book')}</h2>
               <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border bg-sky-500/10 text-sky-400 border-sky-500/20">
                 <Landmark size={11} />
-                Table Banking
+                {t('table_banking.title', 'Table Banking')}
               </span>
             </div>
             <p className="text-sm text-muted mt-1">
-              {currentEvent?.name} · {eventLoans.length} loan{eventLoans.length !== 1 ? 's' : ''} recorded
+              {t('table_banking.loans_summary', {
+                eventName: currentEvent?.name,
+                count: eventLoans.length,
+                defaultValue: '{{eventName}} · {{count}} loan(s) recorded'
+              })}
             </p>
           </div>
           <Button
@@ -144,7 +148,10 @@ export const LoanManager: React.FC = () => {
             <div className="flex items-center gap-3 px-4 py-3 bg-danger/8 border border-danger/20 rounded-xl">
               <AlertCircle size={16} className="text-danger shrink-0" />
               <p className="text-sm font-semibold text-danger flex-1">
-                {defaultedLoans} defaulted loan{defaultedLoans > 1 ? 's' : ''} — follow up with members immediately.
+                {t('table_banking.defaulted_loans_warning_action', {
+                  count: defaultedLoans,
+                  defaultValue: '{{count}} defaulted loan(s) — follow up with members immediately.'
+                })}
               </p>
             </div>
           </motion.div>
@@ -162,9 +169,9 @@ export const LoanManager: React.FC = () => {
         )}
 
         {/* Metrics */}
-        <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Available Pool */}
-          <div className="bg-surface/80 backdrop-blur-md border border-border p-5 rounded-2xl shadow-sm relative overflow-hidden group hover:border-sky-500/30 transition-colors col-span-2 lg:col-span-1">
+          <div className="bg-surface/80 backdrop-blur-md border border-border p-5 rounded-2xl shadow-sm relative overflow-hidden group hover:border-sky-500/30 transition-colors col-span-1 sm:col-span-2 lg:col-span-1">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Wallet size={64} className="text-sky-400" />
             </div>
@@ -232,7 +239,11 @@ export const LoanManager: React.FC = () => {
                   : 'bg-foreground/5 text-muted hover:bg-foreground/10 hover:text-foreground'
               }`}
             >
-              {status}
+              {status === 'All' ? t('status.all', 'All') :
+               status === 'Active' ? t('status.active', 'Active') :
+               status === 'Completed' ? t('status.completed', 'Completed') :
+               status === 'Defaulted' ? t('status.defaulted', 'Defaulted') :
+               status}
               <span className="ml-1.5 opacity-70">
                 {status === 'All' ? eventLoans.length : eventLoans.filter(l => l.status === status).length}
               </span>
@@ -268,131 +279,244 @@ export const LoanManager: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border/60 bg-background/50">
-                    <th className="text-left px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('payments_page.member')}</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden sm:table-cell">{t('table_banking.principal')}</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden md:table-cell">{t('table_banking.interest')}</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('table_banking.total_repayable')}</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden lg:table-cell">{t('table_banking.repaid')}</th>
-                    <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('table_banking.remaining')}</th>
-                    <th className="text-center px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden sm:table-cell">{t('table_banking.due_date')}</th>
-                    <th className="text-center px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40">
-                  {filteredLoans.map((loan, i) => {
-                    const status = statusConfig[loan.status];
-                    const progress = loan.totalRepayable > 0
-                      ? Math.min(100, Math.round((loan.amountRepaid / loan.totalRepayable) * 100))
-                      : 0;
-                    const isOverdue = loan.status === 'Active' && loan.dueDate < new Date().toLocaleDateString('en-CA');
+            <>
+              {/* Mobile Card List View (< md) */}
+              <div className="flex flex-col gap-3 md:hidden p-4">
+                {filteredLoans.map((loan) => {
+                  const status = statusConfig[loan.status];
+                  const progress = loan.totalRepayable > 0
+                    ? Math.min(100, Math.round((loan.amountRepaid / loan.totalRepayable) * 100))
+                    : 0;
+                  const isOverdue = loan.status === 'Active' && loan.dueDate < new Date().toLocaleDateString('en-CA');
 
-                    return (
-                      <motion.tr
-                        key={loan.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        className={`hover:bg-foreground/[0.02] transition-colors ${isOverdue ? 'bg-danger/[0.02]' : ''}`}
-                      >
-                        <td className="px-4 py-3.5">
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">{getContributorName(loan.contributorId)}</p>
-                            <p className="text-[10px] text-muted mt-0.5">{loan.disbursementDate}</p>
-                            {/* Mobile progress */}
-                            <div className="mt-1.5 h-1 bg-border rounded-full overflow-hidden w-24 sm:hidden">
+                  return (
+                    <div
+                      key={loan.id}
+                      className={`flex flex-col gap-3 p-4 bg-foreground/[0.02] border rounded-xl hover:bg-foreground/5 hover:border-foreground/20 transition-all ${
+                        isOverdue ? 'border-danger/30 bg-danger/[0.01]' : 'border-border'
+                      }`}
+                    >
+                      {/* Header: Member name + status badge */}
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center font-heading text-xs font-bold shrink-0">
+                            {getContributorName(loan.contributorId).charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-foreground truncate">{getContributorName(loan.contributorId)}</p>
+                            <p className="text-[10px] text-muted">{loan.disbursementDate}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${status.classes}`}>
+                          {status.icon}
+                          {status.label}
+                        </span>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-3 gap-2 py-2 border-y border-border/50 text-center text-xs">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted font-semibold truncate">{t('table_banking.principal')}</p>
+                          <p className="font-bold text-foreground truncate">{loan.principalAmount.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted font-semibold truncate">{t('table_banking.interest')}</p>
+                          <p className="font-bold text-sky-400 truncate">+{loan.interestAmount.toLocaleString()} ({loan.interestRate}%)</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted font-semibold truncate">{t('table_banking.total_repayable')}</p>
+                          <p className="font-bold text-foreground truncate">{loan.totalRepayable.toLocaleString()}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted font-semibold truncate">{t('table_banking.repaid')}</p>
+                          <p className="font-bold text-success truncate">{loan.amountRepaid.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted font-semibold truncate">{t('table_banking.remaining')}</p>
+                          <p className={`font-bold truncate ${loan.remainingBalance > 0 ? 'text-danger' : 'text-success'}`}>{loan.remainingBalance.toLocaleString()}</p>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between text-xs font-semibold text-foreground">
+                          <span>{t('table_banking.repayment_progress', 'Repayment Progress')}</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Footer: Due date & Actions */}
+                      <div className="flex justify-between items-center gap-2 mt-1">
+                        <div className="text-[10px] text-muted">
+                          {t('table_banking.due_date', 'Due Date')}: <span className={`font-bold ${isOverdue ? 'text-danger' : 'text-foreground'}`}>{loan.dueDate}</span>
+                          {isOverdue && <span className="block text-[8px] uppercase tracking-wider text-danger font-extrabold">{t('status.overdue')}</span>}
+                        </div>
+                        <div className="flex gap-2">
+                          {loan.status === 'Active' && (
+                            <Button
+                              variant="primary"
+                              size="xs"
+                              onClick={() => setSelectedLoan(loan)}
+                              className="bg-sky-500 hover:bg-sky-500/90 gap-1 cursor-pointer"
+                            >
+                              <RefreshCw size={11} />
+                              <span>{t('table_banking.repay')}</span>
+                            </Button>
+                          )}
+                          {loan.status !== 'Active' && (
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              className="text-muted hover:text-danger hover:bg-danger/10 p-1.5 cursor-pointer animate-fade-in"
+                              onClick={() => handleDelete(loan)}
+                            >
+                              <Trash2 size={13} />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View (>= md) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-background/50">
+                      <th className="text-left px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('payments_page.member')}</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden sm:table-cell">{t('table_banking.principal')}</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden md:table-cell">{t('table_banking.interest')}</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('table_banking.total_repayable')}</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden lg:table-cell">{t('table_banking.repaid')}</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">{t('table_banking.remaining')}</th>
+                      <th className="text-center px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest hidden sm:table-cell">{t('table_banking.due_date')}</th>
+                      <th className="text-center px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest">Status</th>
+                      <th className="text-right px-4 py-3 text-[10px] font-bold text-muted uppercase tracking-widest"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {filteredLoans.map((loan, i) => {
+                      const status = statusConfig[loan.status];
+                      const progress = loan.totalRepayable > 0
+                        ? Math.min(100, Math.round((loan.amountRepaid / loan.totalRepayable) * 100))
+                        : 0;
+                      const isOverdue = loan.status === 'Active' && loan.dueDate < new Date().toLocaleDateString('en-CA');
+
+                      return (
+                        <motion.tr
+                          key={loan.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          className={`hover:bg-foreground/[0.02] transition-colors ${isOverdue ? 'bg-danger/[0.02]' : ''}`}
+                        >
+                          <td className="px-4 py-3.5">
+                            <div>
+                              <p className="font-semibold text-sm text-foreground">{getContributorName(loan.contributorId)}</p>
+                              <p className="text-[10px] text-muted mt-0.5">{loan.disbursementDate}</p>
+                              {/* Mobile progress */}
+                              <div className="mt-1.5 h-1 bg-border rounded-full overflow-hidden w-24 sm:hidden">
+                                <div
+                                  className="h-full bg-sky-400 rounded-full"
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              {/* Repay / Delete action always visible here */}
+                              {loan.status === 'Active' && (
+                                <button
+                                  onClick={() => setSelectedLoan(loan)}
+                                  className="mt-2 text-[11px] font-bold text-sky-400 hover:text-white px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500 transition-all whitespace-nowrap inline-flex items-center gap-1 border border-sky-500/20"
+                                >
+                                  <RefreshCw size={11} />
+                                  {t('table_banking.repay')}
+                                </button>
+                              )}
+                              {loan.status !== 'Active' && (
+                                <button
+                                  onClick={() => handleDelete(loan)}
+                                  className="mt-2 text-[11px] font-bold text-muted hover:text-danger px-2 py-1 rounded-lg bg-foreground/5 hover:bg-danger/10 transition-all whitespace-nowrap inline-flex items-center gap-1"
+                                >
+                                  <Trash2 size={11} />
+                                  {t('common.delete')}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 text-right text-sm font-semibold text-foreground hidden sm:table-cell">
+                            {loan.principalAmount.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3.5 text-right text-sm font-semibold text-sky-400 hidden md:table-cell">
+                            +{loan.interestAmount.toLocaleString()}
+                            <span className="text-[10px] text-muted ml-1">({loan.interestRate}%)</span>
+                          </td>
+                          <td className="px-4 py-3.5 text-right">
+                            <p className="text-sm font-bold text-foreground">{loan.totalRepayable.toLocaleString()}</p>
+                            {/* Desktop progress */}
+                            <div className="mt-1 h-1 bg-border rounded-full overflow-hidden w-20 ml-auto hidden lg:block">
                               <div
-                                className="h-full bg-sky-400 rounded-full"
+                                className="h-full bg-sky-400 rounded-full transition-all"
                                 style={{ width: `${progress}%` }}
                               />
                             </div>
-                            {/* Repay / Delete action always visible here */}
+                          </td>
+                          <td className="px-4 py-3.5 text-right text-sm font-semibold text-success hidden lg:table-cell">
+                            {loan.amountRepaid.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3.5 text-right">
+                            <span className={`text-sm font-bold ${loan.remainingBalance > 0 ? 'text-danger' : 'text-success'}`}>
+                              {loan.remainingBalance.toLocaleString()}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                            <span className={`text-xs font-semibold ${isOverdue ? 'text-danger font-bold' : 'text-muted'}`}>
+                              {loan.dueDate}
+                              {isOverdue && <span className="block text-[9px] uppercase tracking-wider">{t('status.overdue')}</span>}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5 text-center">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${status.classes}`}>
+                              {status.icon}
+                              {status.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3.5">
+                            {/* Desktop duplicate button for clarity */}
                             {loan.status === 'Active' && (
                               <button
                                 onClick={() => setSelectedLoan(loan)}
-                                className="mt-2 text-[11px] font-bold text-sky-400 hover:text-white px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500 transition-all whitespace-nowrap inline-flex items-center gap-1 border border-sky-500/20"
+                                className="hidden sm:inline-flex text-xs font-bold text-sky-400 hover:text-white px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 transition-all whitespace-nowrap items-center gap-1 border border-sky-500/20"
                               >
-                                <RefreshCw size={11} />
+                                <RefreshCw size={12} />
                                 {t('table_banking.repay')}
                               </button>
                             )}
                             {loan.status !== 'Active' && (
                               <button
                                 onClick={() => handleDelete(loan)}
-                                className="mt-2 text-[11px] font-bold text-muted hover:text-danger px-2 py-1 rounded-lg bg-foreground/5 hover:bg-danger/10 transition-all whitespace-nowrap inline-flex items-center gap-1"
+                                className="hidden sm:inline-flex p-1.5 text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-all items-center gap-1 text-xs"
                               >
-                                <Trash2 size={11} />
-                                {t('common.delete')}
+                                <Trash2 size={14} />
                               </button>
                             )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-right text-sm font-semibold text-foreground hidden sm:table-cell">
-                          {loan.principalAmount.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3.5 text-right text-sm font-semibold text-sky-400 hidden md:table-cell">
-                          +{loan.interestAmount.toLocaleString()}
-                          <span className="text-[10px] text-muted ml-1">({loan.interestRate}%)</span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <p className="text-sm font-bold text-foreground">{loan.totalRepayable.toLocaleString()}</p>
-                          {/* Desktop progress */}
-                          <div className="mt-1 h-1 bg-border rounded-full overflow-hidden w-20 ml-auto hidden lg:block">
-                            <div
-                              className="h-full bg-sky-400 rounded-full transition-all"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-right text-sm font-semibold text-success hidden lg:table-cell">
-                          {loan.amountRepaid.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <span className={`text-sm font-bold ${loan.remainingBalance > 0 ? 'text-danger' : 'text-success'}`}>
-                            {loan.remainingBalance.toLocaleString()}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-center hidden sm:table-cell">
-                          <span className={`text-xs font-semibold ${isOverdue ? 'text-danger font-bold' : 'text-muted'}`}>
-                            {loan.dueDate}
-                            {isOverdue && <span className="block text-[9px] uppercase tracking-wider">{t('status.overdue')}</span>}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-center">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${status.classes}`}>
-                            {status.icon}
-                            {status.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {/* Desktop duplicate button for clarity */}
-                          {loan.status === 'Active' && (
-                            <button
-                              onClick={() => setSelectedLoan(loan)}
-                              className="hidden sm:inline-flex text-xs font-bold text-sky-400 hover:text-white px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 transition-all whitespace-nowrap items-center gap-1 border border-sky-500/20"
-                            >
-                              <RefreshCw size={12} />
-                              {t('table_banking.repay')}
-                            </button>
-                          )}
-                          {loan.status !== 'Active' && (
-                            <button
-                              onClick={() => handleDelete(loan)}
-                              className="hidden sm:inline-flex p-1.5 text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-all items-center gap-1 text-xs"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </motion.div>
       </motion.div>
