@@ -86,6 +86,12 @@ interface LocooContextType {
       name: string;
       eventType: 'harambee' | 'merry-go-round' | 'table-banking';
       targetAmount?: number;
+      frequency?: string;
+      startDate?: string;
+      interestRate?: number;
+      contributionAmount?: number;
+      harambeeMode?: 'equal' | 'custom';
+      installmentsCount?: number;
     },
     members: {
       fullName: string;
@@ -263,6 +269,12 @@ export const LocooProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       name: string;
       eventType: 'harambee' | 'merry-go-round' | 'table-banking';
       targetAmount?: number;
+      frequency?: string;
+      startDate?: string;
+      interestRate?: number;
+      contributionAmount?: number;
+      harambeeMode?: 'equal' | 'custom';
+      installmentsCount?: number;
     },
     members: {
       fullName: string;
@@ -290,6 +302,24 @@ export const LocooProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (eventInfo.targetAmount !== undefined && eventInfo.targetAmount > 0) {
       eventData.targetAmount = eventInfo.targetAmount;
+    }
+    if (eventInfo.frequency) {
+      eventData.frequency = eventInfo.frequency;
+    }
+    if (eventInfo.startDate) {
+      eventData.startDate = eventInfo.startDate;
+    }
+    if (eventInfo.interestRate !== undefined) {
+      eventData.interestRate = eventInfo.interestRate;
+    }
+    if (eventInfo.contributionAmount !== undefined && eventInfo.contributionAmount > 0) {
+      eventData.contributionAmount = eventInfo.contributionAmount;
+    }
+    if (eventInfo.harambeeMode) {
+      eventData.harambeeMode = eventInfo.harambeeMode;
+    }
+    if (eventInfo.installmentsCount !== undefined && eventInfo.installmentsCount > 0) {
+      eventData.installmentsCount = eventInfo.installmentsCount;
     }
 
     const batch = writeBatch(db);

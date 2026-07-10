@@ -43,6 +43,13 @@ export interface Event {
   eventType?: 'harambee' | 'merry-go-round' | 'table-banking';
   targetAmount?: number;
   rotationOrder?: string[]; // ordered contributorIds for merry-go-round
+  frequency?: string;
+  startDate?: string;
+  endDate?: string;
+  interestRate?: number;
+  contributionAmount?: number;
+  harambeeMode?: 'equal' | 'custom';
+  installmentsCount?: number;
   createdAt: any;
 }
 
